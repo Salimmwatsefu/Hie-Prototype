@@ -1,7 +1,7 @@
-const express = require('express');
-const { body, param, validationResult } = require('express-validator');
-const { pool } = require('../config/database');
-const { authenticateToken, requireRole, auditLog } = require('../middleware/auth');
+import express from "express";
+import { body, param, validationResult } from "express-validator";
+import { pool } from "../config/database.js";
+import { authenticateToken, requireRole, auditLog } from "../middleware/auth.js";
 
 const router = express.Router();
 
@@ -9,22 +9,22 @@ const router = express.Router();
 router.use(authenticateToken);
 
 // Get fraud alerts (with pagination and filtering)
-router.get('/alerts', requireRole(['doctor', 'admin']), auditLog('VIEW_FRAUD_ALERTS', 'FRAUD'), async (req, res) => {
+router.get("/alerts", requireRole(["doctor", "admin"]), auditLog("VIEW_FRAUD_ALERTS", "FRAUD"), async (req, res) => {
   try {
-    const { 
-      page = 1, 
-      limit = 20, 
-      riskLevel, 
-      hospitalId, 
-      reviewed, 
-      startDate, 
-      endDate 
+    const {
+      page = 1,
+      limit = 20,
+      riskLevel,
+      hospitalId,
+      reviewed,
+      startDate,
+      endDate
     } = req.query;
     
     const offset = (page - 1) * limit;
 
     let query = `
-      SELECT fl.*, p.nhif_id, p.first_name, p.last_name, 
+      SELECT fl.*, p.nhif_id, p.first_name, p.last_name,
              r.first_name as reviewer_first_name, r.last_name as reviewer_last_name
       FROM fraud_logs fl
       JOIN patients p ON fl.patient_id = p.id
@@ -46,7 +46,7 @@ router.get('/alerts', requireRole(['doctor', 'admin']), auditLog('VIEW_FRAUD_ALE
       paramCount++;
       query += ` AND fl.hospital_id = $${paramCount}`;
       params.push(hospitalId);
-    } else if (req.user.role !== 'admin' && req.user.hospital_id) {
+    } else if (req.user.role !== "admin" && req.user.hospital_id) {
       // Non-admin users can only see alerts from their hospital
       paramCount++;
       query += ` AND fl.hospital_id = $${paramCount}`;
@@ -57,7 +57,7 @@ router.get('/alerts', requireRole(['doctor', 'admin']), auditLog('VIEW_FRAUD_ALE
     if (reviewed !== undefined) {
       paramCount++;
       query += ` AND fl.reviewed = $${paramCount}`;
-      params.push(reviewed === 'true');
+      params.push(reviewed === "true");
     }
 
     // Filter by date range
@@ -97,7 +97,7 @@ router.get('/alerts', requireRole(['doctor', 'admin']), auditLog('VIEW_FRAUD_ALE
       countParamCount++;
       countQuery += ` AND fl.hospital_id = $${countParamCount}`;
       countParams.push(hospitalId);
-    } else if (req.user.role !== 'admin' && req.user.hospital_id) {
+    } else if (req.user.role !== "admin" && req.user.hospital_id) {
       countParamCount++;
       countQuery += ` AND fl.hospital_id = $${countParamCount}`;
       countParams.push(req.user.hospital_id);
@@ -106,7 +106,7 @@ router.get('/alerts', requireRole(['doctor', 'admin']), auditLog('VIEW_FRAUD_ALE
     if (reviewed !== undefined) {
       countParamCount++;
       countQuery += ` AND fl.reviewed = $${countParamCount}`;
-      countParams.push(reviewed === 'true');
+      countParams.push(reviewed === "true");
     }
 
     if (startDate) {
@@ -138,8 +138,8 @@ router.get('/alerts', requireRole(['doctor', 'admin']), auditLog('VIEW_FRAUD_ALE
       detectedAt: alert.detected_at,
       reviewed: alert.reviewed,
       reviewerId: alert.reviewer_id,
-      reviewerName: alert.reviewer_first_name && alert.reviewer_last_name 
-        ? `${alert.reviewer_first_name} ${alert.reviewer_last_name}` 
+      reviewerName: alert.reviewer_first_name && alert.reviewer_last_name
+        ? `${alert.reviewer_first_name} ${alert.reviewer_last_name}`
         : null,
       reviewNotes: alert.review_notes
     }));
@@ -154,15 +154,15 @@ router.get('/alerts', requireRole(['doctor', 'admin']), auditLog('VIEW_FRAUD_ALE
       }
     });
   } catch (error) {
-    console.error('Get fraud alerts error:', error);
-    res.status(500).json({ error: 'Failed to fetch fraud alerts' });
+    console.error("Get fraud alerts error:", error);
+    res.status(500).json({ error: "Failed to fetch fraud alerts" });
   }
 });
 
 // Get fraud alert by ID
-router.get('/alerts/:id', [
-  param('id').isUUID()
-], requireRole(['doctor', 'admin']), auditLog('VIEW_FRAUD_ALERT', 'FRAUD'), async (req, res) => {
+router.get("/alerts/:id", [
+  param("id").isUUID()
+], requireRole(["doctor", "admin"]), auditLog("VIEW_FRAUD_ALERT", "FRAUD"), async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -181,14 +181,14 @@ router.get('/alerts/:id', [
     `, [id]);
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Fraud alert not found' });
+      return res.status(404).json({ error: "Fraud alert not found" });
     }
 
     const alert = result.rows[0];
 
     // Check if user has access to this alert
-    if (req.user.role !== 'admin' && req.user.hospital_id !== alert.hospital_id) {
-      return res.status(403).json({ error: 'Access denied to this fraud alert' });
+    if (req.user.role !== "admin" && req.user.hospital_id !== alert.hospital_id) {
+      return res.status(403).json({ error: "Access denied to this fraud alert" });
     }
 
     res.json({
@@ -209,23 +209,23 @@ router.get('/alerts/:id', [
       detectedAt: alert.detected_at,
       reviewed: alert.reviewed,
       reviewerId: alert.reviewer_id,
-      reviewerName: alert.reviewer_first_name && alert.reviewer_last_name 
-        ? `${alert.reviewer_first_name} ${alert.reviewer_last_name}` 
+      reviewerName: alert.reviewer_first_name && alert.reviewer_last_name
+        ? `${alert.reviewer_first_name} ${alert.reviewer_last_name}`
         : null,
       reviewNotes: alert.review_notes
     });
   } catch (error) {
-    console.error('Get fraud alert error:', error);
-    res.status(500).json({ error: 'Failed to fetch fraud alert' });
+    console.error("Get fraud alert error:", error);
+    res.status(500).json({ error: "Failed to fetch fraud alert" });
   }
 });
 
 // Review fraud alert
-router.put('/alerts/:id/review', [
-  param('id').isUUID(),
-  body('reviewNotes').optional().trim(),
-  body('action').isIn(['approve', 'flag', 'investigate'])
-], requireRole(['doctor', 'admin']), auditLog('REVIEW_FRAUD_ALERT', 'FRAUD'), async (req, res) => {
+router.put("/alerts/:id/review", [
+  param("id").isUUID(),
+  body("reviewNotes").optional().trim(),
+  body("action").isIn(["approve", "flag", "investigate"])
+], requireRole(["doctor", "admin"]), auditLog("REVIEW_FRAUD_ALERT", "FRAUD"), async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -242,20 +242,20 @@ router.put('/alerts/:id/review', [
     `, [id]);
 
     if (alertResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Fraud alert not found' });
+      return res.status(404).json({ error: "Fraud alert not found" });
     }
 
     const alert = alertResult.rows[0];
 
-    if (req.user.role !== 'admin' && req.user.hospital_id !== alert.hospital_id) {
-      return res.status(403).json({ error: 'Access denied to this fraud alert' });
+    if (req.user.role !== "admin" && req.user.hospital_id !== alert.hospital_id) {
+      return res.status(403).json({ error: "Access denied to this fraud alert" });
     }
 
     // Update the fraud alert
     const result = await pool.query(`
-      UPDATE fraud_logs 
-      SET reviewed = true, 
-          reviewer_id = $1, 
+      UPDATE fraud_logs
+      SET reviewed = true,
+          reviewer_id = $1,
           review_notes = $2
       WHERE id = $3
       RETURNING *
@@ -264,7 +264,7 @@ router.put('/alerts/:id/review', [
     const updatedAlert = result.rows[0];
 
     res.json({
-      message: 'Fraud alert reviewed successfully',
+      message: "Fraud alert reviewed successfully",
       alert: {
         id: updatedAlert.id,
         reviewed: updatedAlert.reviewed,
@@ -274,21 +274,21 @@ router.put('/alerts/:id/review', [
       }
     });
   } catch (error) {
-    console.error('Review fraud alert error:', error);
-    res.status(500).json({ error: 'Failed to review fraud alert' });
+    console.error("Review fraud alert error:", error);
+    res.status(500).json({ error: "Failed to review fraud alert" });
   }
 });
 
 // Create fraud alert (typically called by fraud detection service)
-router.post('/alerts', [
-  body('patientId').isUUID(),
-  body('claimId').optional().trim(),
-  body('hospitalId').notEmpty().trim(),
-  body('fraudScore').isFloat({ min: 0, max: 1 }),
-  body('riskLevel').isIn(['low', 'medium', 'high']),
-  body('flags').isObject(),
-  body('modelVersion').optional().trim()
-], requireRole(['admin']), auditLog('CREATE_FRAUD_ALERT', 'FRAUD'), async (req, res) => {
+router.post("/alerts", [
+  body("patientId").isUUID(),
+  body("claimId").optional().trim(),
+  body("hospitalId").notEmpty().trim(),
+  body("fraudScore").isFloat({ min: 0, max: 1 }),
+  body("riskLevel").isIn(["low", "medium", "high"]),
+  body("flags").isObject(),
+  body("modelVersion").optional().trim()
+], requireRole(["admin"]), auditLog("CREATE_FRAUD_ALERT", "FRAUD"), async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -298,9 +298,9 @@ router.post('/alerts', [
     const { patientId, claimId, hospitalId, fraudScore, riskLevel, flags, modelVersion } = req.body;
 
     // Check if patient exists
-    const patientResult = await pool.query('SELECT id FROM patients WHERE id = $1', [patientId]);
+    const patientResult = await pool.query("SELECT id FROM patients WHERE id = $1", [patientId]);
     if (patientResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Patient not found' });
+      return res.status(404).json({ error: "Patient not found" });
     }
 
     const result = await pool.query(`
@@ -312,7 +312,7 @@ router.post('/alerts', [
     const fraudAlert = result.rows[0];
 
     res.status(201).json({
-      message: 'Fraud alert created successfully',
+      message: "Fraud alert created successfully",
       alert: {
         id: fraudAlert.id,
         patientId: fraudAlert.patient_id,
@@ -326,18 +326,18 @@ router.post('/alerts', [
       }
     });
   } catch (error) {
-    console.error('Create fraud alert error:', error);
-    res.status(500).json({ error: 'Failed to create fraud alert' });
+    console.error("Create fraud alert error:", error);
+    res.status(500).json({ error: "Failed to create fraud alert" });
   }
 });
 
 // Get fraud statistics
-router.get('/stats/summary', requireRole(['admin']), auditLog('VIEW_FRAUD_STATS', 'FRAUD'), async (req, res) => {
+router.get("/stats/summary", requireRole(["admin"]), auditLog("VIEW_FRAUD_STATS", "FRAUD"), async (req, res) => {
   try {
     const { startDate, endDate, hospitalId } = req.query;
 
-    let dateFilter = '';
-    let hospitalFilter = '';
+    let dateFilter = "";
+    let hospitalFilter = "";
     const params = [];
     let paramCount = 0;
 
@@ -367,21 +367,21 @@ router.get('/stats/summary', requireRole(['admin']), auditLog('VIEW_FRAUD_STATS'
     // Get alerts by risk level
     const riskStatsResult = await pool.query(`
       SELECT risk_level, COUNT(*) as count
-      FROM fraud_logs 
+      FROM fraud_logs
       WHERE 1=1 ${dateFilter} ${hospitalFilter}
       GROUP BY risk_level
-      ORDER BY 
-        CASE risk_level 
-          WHEN 'high' THEN 1 
-          WHEN 'medium' THEN 2 
-          WHEN 'low' THEN 3 
+      ORDER BY
+        CASE risk_level
+          WHEN 'high' THEN 1
+          WHEN 'medium' THEN 2
+          WHEN 'low' THEN 3
         END
     `, params);
 
     // Get review status stats
     const reviewStatsResult = await pool.query(`
       SELECT reviewed, COUNT(*) as count
-      FROM fraud_logs 
+      FROM fraud_logs
       WHERE 1=1 ${dateFilter} ${hospitalFilter}
       GROUP BY reviewed
     `, params);
@@ -389,14 +389,14 @@ router.get('/stats/summary', requireRole(['admin']), auditLog('VIEW_FRAUD_STATS'
     // Get average fraud score
     const avgScoreResult = await pool.query(`
       SELECT AVG(fraud_score) as avg_score
-      FROM fraud_logs 
+      FROM fraud_logs
       WHERE 1=1 ${dateFilter} ${hospitalFilter}
     `, params);
 
     // Get daily fraud detection trend (last 30 days)
     const trendResult = await pool.query(`
       SELECT DATE(detected_at) as date, COUNT(*) as count, AVG(fraud_score) as avg_score
-      FROM fraud_logs 
+      FROM fraud_logs
       WHERE detected_at >= CURRENT_DATE - INTERVAL '30 days' ${dateFilter} ${hospitalFilter}
       GROUP BY DATE(detected_at)
       ORDER BY date DESC
@@ -405,7 +405,7 @@ router.get('/stats/summary', requireRole(['admin']), auditLog('VIEW_FRAUD_STATS'
     // Get top hospitals with fraud alerts
     const hospitalStatsResult = await pool.query(`
       SELECT hospital_id, COUNT(*) as count, AVG(fraud_score) as avg_score
-      FROM fraud_logs 
+      FROM fraud_logs
       WHERE 1=1 ${dateFilter} ${hospitalFilter}
       GROUP BY hospital_id
       ORDER BY count DESC
@@ -441,10 +441,11 @@ router.get('/stats/summary', requireRole(['admin']), auditLog('VIEW_FRAUD_STATS'
       }))
     });
   } catch (error) {
-    console.error('Get fraud stats error:', error);
-    res.status(500).json({ error: 'Failed to fetch fraud statistics' });
+    console.error("Get fraud stats error:", error);
+    res.status(500).json({ error: "Failed to fetch fraud statistics" });
   }
 });
 
-module.exports = router;
+export default router;
+
 

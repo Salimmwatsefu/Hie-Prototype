@@ -1,12 +1,18 @@
-const express = require("express");
-const { body, param, validationResult } = require("express-validator");
-const { pool } = require("../config/database");
-const { authenticateToken, requireRole, auditLog } = require("../middleware/auth");
+import express from "express";
+import { body, param, validationResult } from "express-validator";
+import { pool } from "../config/database.js";
+import { authenticateToken, requireRole, auditLog } from "../middleware/auth.js";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const router = express.Router();
 
 // Apply authentication to all routes
-
+router.use(authenticateToken);
 
 // Enhanced fraud detection with anatomical constraints
 class AnatomyFraudDetector {
@@ -438,9 +444,6 @@ router.post(
   async (req, res) => {
     try {
       // Load the generated fraud cases
-      const fs = require("fs");
-      const path = require("path");
-
       const datasetPath = path.join(__dirname, "../fraud_cases_dataset.json");
       const dataset = JSON.parse(fs.readFileSync(datasetPath, "utf8"));
 
@@ -509,50 +512,54 @@ function generateRecommendations(violations, fraudScore) {
   if (fraudScore >= 0.8) {
     recommendations.push("IMMEDIATE ACTION: Flag patient and block all future claims");
     recommendations.push("Investigate all associated hospitals and providers");
-    recommendations.push("Contact law enforcement for potential criminal fraud");
+    recommendations.push("Coordinate with law enforcement and regulatory bodies");
   } else if (fraudScore >= 0.6) {
-    recommendations.push("Require additional verification for future claims");
-    recommendations.push("Manual review of all procedures");
-    recommendations.push("Cross-reference with other insurance providers");
+    recommendations.push("HIGH PRIORITY: Review patient's full medical history and claims");
+    recommendations.push("Conduct interviews with involved medical staff");
+    recommendations.push("Implement enhanced monitoring for this patient and related entities");
   } else if (fraudScore >= 0.3) {
-    recommendations.push("Enhanced monitoring of future claims");
-    recommendations.push("Verify medical necessity with treating physicians");
+    recommendations.push("MEDIUM PRIORITY: Conduct a detailed review of flagged procedures");
+    recommendations.push("Verify patient identity and insurance details");
+    recommendations.push("Monitor for recurring suspicious patterns");
+  } else {
+    recommendations.push("LOW PRIORITY: Log for future reference and trend analysis");
   }
 
   violations.forEach((violation) => {
-    if (violation.type === "anatomical_violation") {
-      recommendations.push("Implement anatomical constraint validation in claims processing");
-      recommendations.push("Review patient's historical medical records for discrepancies");
-    }
-    if (violation.type === "cross_provider_pattern") {
-      recommendations.push("Enhance data sharing protocols between healthcare providers");
-      recommendations.push("Utilize centralized patient registries or EHRs");
-    }
-    if (violation.type === "identity_reuse") {
-      recommendations.push("Strengthen patient identity verification processes (e.g., biometrics, multi-factor authentication)");
-      recommendations.push("Implement robust alias detection mechanisms");
-    }
-    if (violation.type === "temporal_anomaly") {
-      recommendations.push("Establish rules for minimum time intervals between certain procedures");
-      recommendations.push("Automate alerts for unusually frequent claims");
+    switch (violation.type) {
+      case "anatomical_violation":
+        recommendations.push(`Specific recommendation: Investigate ${violation.procedure_type.replace("_", " ")} claims. Review medical necessity and documentation.`);
+        break;
+      case "cross_provider_pattern":
+        recommendations.push(`Specific recommendation: Investigate cross-provider activity involving hospitals: ${violation.hospitals.join(", ")}.`);
+        break;
+      case "insurance_fraud":
+        recommendations.push(`Specific recommendation: Investigate multiple insurance provider claims: ${violation.providers.join(", ")}.`);
+        break;
+      case "temporal_anomaly":
+        recommendations.push(`Specific recommendation: Review closely spaced procedures (${Math.round(violation.daysDiff)} days apart).`);
+        break;
+      case "identity_reuse":
+        recommendations.push(`Specific recommendation: Verify patient identity due to name variations: ${violation.names.join(", ")}.`);
+        break;
     }
   });
 
-  return [...new Set(recommendations)]; // Return unique recommendations
+  return recommendations;
 }
 
 function generateAnomalyExplanation(anomaly) {
   switch (anomaly.type) {
     case "anatomical_violation":
-      return `This anomaly indicates that the patient has claimed more ${anomaly.procedure_type.replace("_", " ")} procedures (${anomaly.count}) than a human body typically possesses (${anomaly.limit}). This is a critical red flag for potential fraud.`;
+      return `This anomaly indicates that the patient has undergone an unusually high number of ${anomaly.procedure_type.replace("_", " ")} procedures (${anomaly.count} times), exceeding the human anatomical limit of ${anomaly.limit}. This is a strong indicator of potential fraud or data entry error.`;
     case "cross_provider_pattern":
-      return `Multiple claims for the same patient were submitted across different hospital systems (${anomaly.hospitals.join(", ")}). This pattern can indicate an attempt to bypass individual hospital fraud detection systems.`;
+      return `This anomaly suggests that the patient's claims are being submitted across multiple healthcare providers (${anomaly.hospitals.length} hospitals). While not always fraudulent, this pattern can indicate \"patient brokering\" or \"doctor shopping\" for illicit purposes.`;
     case "insurance_fraud":
-      return `Claims for the same patient were submitted to multiple different insurance providers (${anomaly.providers.join(", ")}). This suggests an attempt to exploit loopholes across different insurance policies.`;
-    case "identity_reuse":
-      return `The patient ID was used with various name variations (${anomaly.names.join(", ")}). This is a common tactic in synthetic identity fraud to obscure the true identity of the claimant.`;
+      return `This anomaly highlights claims being submitted to multiple different insurance providers (${anomaly.providers.length} providers) for the same patient. This is a common tactic in insurance fraud to maximize payouts or avoid detection.`;
     case "temporal_anomaly":
-      return `Certain procedures were performed in an unusually short time frame (${anomaly.description}). This could indicate unnecessary procedures or an attempt to rapidly process fraudulent claims.`;
+      return `This anomaly indicates that major medical procedures were performed in an unusually short timeframe (${Math.round(anomaly.daysDiff)} days apart). This could suggest unnecessary procedures, upcoding, or a lack of proper recovery time, all of which are red flags for fraud.`;
+    case "identity_reuse":
+      return `This anomaly points to the same patient ID being associated with multiple variations of the patient's name. This could be an attempt to obscure identity, create \"ghost patients,\" or facilitate identity theft for fraudulent billing.`;
     default:
       return "No specific explanation available for this anomaly type.";
   }
@@ -562,25 +569,50 @@ function generateEvidence(anomaly, procedures) {
   const evidence = [];
   switch (anomaly.type) {
     case "anatomical_violation":
-      evidence.push(`Procedures claimed: ${procedures.filter(p => AnatomyFraudDetector.categorizeProcedure(p.procedure_name || p.procedure) === anomaly.procedure_type).map(p => `${p.procedure_name || p.procedure} on ${p.date}`).join("; ")}`);
+      evidence.push(`Procedures: ${procedures.filter(p => AnatomyFraudDetector.categorizeProcedure(p.procedure_name || p.procedure) === anomaly.procedure_type).map(p => `${p.procedure_name || p.procedure} on ${p.date}`).join("; ")}`);
       break;
     case "cross_provider_pattern":
       evidence.push(`Hospitals involved: ${anomaly.hospitals.join(", ")}`);
-      evidence.push(`Claims: ${procedures.map(p => `${p.procedure_name || p.procedure} at ${p.hospital} on ${p.date}`).join("; ")}`);
+      evidence.push(`Procedures: ${procedures.map(p => `${p.procedure_name || p.procedure} at ${p.hospital} on ${p.date}`).join("; ")}`);
       break;
     case "insurance_fraud":
-      evidence.push(`Insurance providers involved: ${anomaly.providers.join(", ")}`);
-      evidence.push(`Claims: ${procedures.map(p => `${p.procedure_name || p.procedure} to ${p.insurance_provider} on ${p.date}`).join("; ")}`);
-      break;
-    case "identity_reuse":
-      evidence.push(`Name variations used: ${anomaly.names.join(", ")}`);
-      evidence.push(`Claims: ${procedures.map(p => `Patient: ${p.patient_name}, Procedure: ${p.procedure_name || p.procedure} on ${p.date}`).join("; ")}`);
+      evidence.push(`Insurance providers: ${anomaly.providers.join(", ")}`);
+      evidence.push(`Procedures: ${procedures.map(p => `${p.procedure_name || p.procedure} with ${p.insurance_provider} on ${p.date}`).join("; ")}`);
       break;
     case "temporal_anomaly":
-      evidence.push(`Dates of relevant procedures: ${procedures.map(p => p.date).sort().join(", ")}`);
+      evidence.push(`Procedures: ${procedures.map(p => `${p.procedure_name || p.procedure} on ${p.date}`).join("; ")}`);
+      break;
+    case "identity_reuse":
+      evidence.push(`Name variations: ${anomaly.names.join(", ")}`);
+      evidence.push(`Procedures: ${procedures.map(p => `${p.procedure_name || p.procedure} for ${p.patient_name} on ${p.date}`).join("; ")}`);
       break;
   }
   return evidence;
 }
 
-module.exports = router;
+function generateLessonsLearned(anomalies) {
+  const lessons = [];
+  if (anomalies.some(a => a.type === "anatomical_violation")) {
+    lessons.push("Implement stricter validation for procedure codes and quantities based on anatomical limits.");
+  }
+  if (anomalies.some(a => a.type === "cross_provider_pattern")) {
+    lessons.push("Enhance cross-referencing of patient claims across different hospitals and providers.");
+  }
+  if (anomalies.some(a => a.type === "insurance_fraud")) {
+    lessons.push("Improve verification processes for patient insurance details and historical claims across multiple insurers.");
+  }
+  if (anomalies.some(a => a.type === "temporal_anomaly")) {
+    lessons.push("Develop algorithms to detect unusually short intervals between major medical procedures.");
+  }
+  if (anomalies.some(a => a.type === "identity_reuse")) {
+    lessons.push("Strengthen patient identity verification, including biometric or advanced demographic matching.");
+  }
+  if (lessons.length === 0) {
+    lessons.push("No specific lessons learned from this case, but continuous monitoring is recommended.");
+  }
+  return lessons;
+}
+
+export default router;
+
+

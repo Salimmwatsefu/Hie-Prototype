@@ -1,20 +1,20 @@
-const express = require('express');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const { body, validationResult } = require('express-validator');
-const { pool } = require('../config/database');
-const { 
-  authLimiter, 
-  authenticateToken, 
+import express from 'express';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import { body, validationResult } from 'express-validator';
+import { pool } from '../config/database.js';
+import {
+  authLimiter,
+  authenticateToken,
   auditLog,
-  hashPassword, 
-  verifyPassword, 
-  generateToken, 
+  hashPassword,
+  verifyPassword,
+  generateToken,
   generateRefreshToken,
   generateMFASecret,
   logAuditEvent,
   requireMFA
-} = require('../middleware/auth');
+} from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -35,10 +35,10 @@ router.post('/register', [
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       await logAuditEvent(req, 'REGISTER_VALIDATION_ERROR', 'USER', null, 'FAILED', { errors: errors.array() });
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: 'Validation failed',
         code: 'VALIDATION_ERROR',
-        details: errors.array() 
+        details: errors.array()
       });
     }
 
@@ -48,7 +48,7 @@ router.post('/register', [
     const existingUser = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
     if (existingUser.rows.length > 0) {
       await logAuditEvent(req, 'REGISTER_USER_EXISTS', 'USER', null, 'FAILED', { email });
-      return res.status(409).json({ 
+      return res.status(409).json({
         error: 'User already exists',
         code: 'USER_EXISTS'
       });
@@ -84,7 +84,7 @@ router.post('/register', [
   } catch (error) {
     console.error('Registration error:', error);
     await logAuditEvent(req, 'REGISTER_ERROR', 'USER', null, 'ERROR', { error: error.message });
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Registration failed',
       code: 'SERVER_ERROR'
     });
@@ -92,7 +92,7 @@ router.post('/register', [
 });
 
 // OAuth 2.0 Login endpoint
-/*router.post('/login', [
+router.post('/login', [
   body('email').isEmail().normalizeEmail(),
   body('password').notEmpty(),
   body('mfaCode').optional().isLength({ min: 6, max: 6 })
@@ -203,77 +203,7 @@ router.post('/register', [
       code: 'SERVER_ERROR'
     });
   }
-});*/
-
-// TEMP LOGIN FOR TESTING
-// TEMP LOGIN FOR TESTING
-router.post('/login', (req, res) => {
-  const { email, password, mfaCode } = req.body;
-
-  // Dummy users
-  const dummyUsers = [
-    {
-      email: 'doctor@hie.com',
-      userId: 'a93f4a1e-befd-4b64-8c7f-6542180a1bfc',
-      password: '12345678',
-      role: 'doctor',
-      firstName: 'Doctor',
-      lastName: 'KNH',
-      nhifId: 'NHIF123',
-      hospitalId: 'KNH001'
-    },
-    {
-      email: 'admin@hie.com',
-      userId: 'a93f4a1e-befd-4b64-8c7f-6542180a1dhy',
-      password: 'admin123',
-      role: 'admin',
-      firstName: 'Admin',
-      lastName: 'User',
-      nhifId: 'ADMIN-NHIF',
-      hospitalId: 'ADM001'
-    },
-    {
-      email: 'nurse@hie.com',
-      userId: 'a93f4a1e-befd-4b64-8c7f-6542180a1gkb',
-      password: 'nurse123',
-      role: 'nurse',
-      firstName: 'Nurse',
-      lastName: 'User',
-      nhifId: 'NURSE-NHIF',
-      hospitalId: 'NUR001'
-    }
-  ];
-
-  const user = dummyUsers.find(u => u.email === email && u.password === password);
-  if (!user) {
-    return res.status(401).json({
-      error: 'Invalid credentials',
-      code: 'INVALID_CREDENTIALS'
-    });
-  }
-
-  if (mfaCode && !['123456', '654321', '111111'].includes(mfaCode)) {
-    return res.status(401).json({
-      error: 'Invalid MFA code',
-      code: 'INVALID_MFA'
-    });
-  }
-
-  const accessToken = jwt.sign({ userId: user.userId, role: user.role }, process.env.JWT_SECRET, { expiresIn: '8h' });
-  const refreshToken = jwt.sign({ userId: user.userId, type: 'refresh' }, process.env.JWT_REFRESH_SECRET, { expiresIn: '7d' });
-
-  return res.json({
-    message: 'Login successful',
-    user,
-    tokens: {
-      accessToken,
-      refreshToken,
-      expiresIn: '8h'
-    }
-  });
 });
-
-
 
 // MFA verification endpoint
 router.post('/verify-mfa', [
@@ -474,10 +404,10 @@ router.put('/profile', authenticateToken, [
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: 'Validation failed',
         code: 'VALIDATION_ERROR',
-        details: errors.array() 
+        details: errors.array()
       });
     }
 
@@ -485,7 +415,7 @@ router.put('/profile', authenticateToken, [
     const userId = req.user.id;
 
     const result = await pool.query(`
-      UPDATE users 
+      UPDATE users
       SET first_name = COALESCE($1, first_name),
           last_name = COALESCE($2, last_name),
           nhif_id = COALESCE($3, nhif_id),
@@ -511,7 +441,7 @@ router.put('/profile', authenticateToken, [
     });
   } catch (error) {
     console.error('Profile update error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Failed to update profile',
       code: 'SERVER_ERROR'
     });
@@ -555,7 +485,7 @@ router.put('/change-password', authenticateToken, [
 
     // Update password
     await pool.query(`
-      UPDATE users 
+      UPDATE users
       SET password_hash = $1, updated_at = CURRENT_TIMESTAMP
       WHERE id = $2
     `, [newPasswordHash, userId]);
@@ -646,5 +576,6 @@ router.post('/logout', authenticateToken, async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;
+
 

@@ -1,7 +1,7 @@
-const express = require('express');
-const { body, validationResult, param } = require('express-validator');
-const { pool } = require('../config/database');
-const { authenticateToken, requireRole, auditLog } = require('../middleware/auth');
+import express from 'express';
+import { body, validationResult, param } from 'express-validator';
+import { pool } from '../config/database.js';
+import { authenticateToken, requireRole, auditLog } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -344,5 +344,6 @@ router.get('/search/nhif/:nhifId', [
   }
 });
 
-module.exports = router;
+export default router;
+
 

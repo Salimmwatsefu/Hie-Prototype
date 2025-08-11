@@ -1,7 +1,7 @@
-const express = require('express');
-const { body, validationResult, param } = require('express-validator');
-const { pool } = require('../config/database');
-const { authenticateToken, requireRole, auditLog } = require('../middleware/auth');
+import express from "express";
+import { body, validationResult, param } from "express-validator";
+import { pool } from "../config/database.js";
+import { authenticateToken, requireRole, auditLog } from "../middleware/auth.js";
 
 const router = express.Router();
 
@@ -202,9 +202,9 @@ const convertToFHIRObservation = (vitalSigns, patientId, recordId) => {
 };
 
 // Get FHIR Patient by ID
-router.get('/Patient/:id', [
-  param('id').isUUID()
-], requireRole(['doctor', 'nurse', 'admin']), auditLog('FHIR_GET_PATIENT', 'PATIENT'), async (req, res) => {
+router.get("/Patient/:id", [
+  param("id").isUUID()
+], requireRole(["doctor", "nurse", "admin"]), auditLog("FHIR_GET_PATIENT", "PATIENT"), async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -213,7 +213,7 @@ router.get('/Patient/:id', [
 
     const { id } = req.params;
 
-    const result = await pool.query('SELECT * FROM patients WHERE id = $1', [id]);
+    const result = await pool.query("SELECT * FROM patients WHERE id = $1", [id]);
 
     if (result.rows.length === 0) {
       return res.status(404).json({
@@ -233,7 +233,7 @@ router.get('/Patient/:id', [
 
     res.json(fhirPatient);
   } catch (error) {
-    console.error('FHIR get patient error:', error);
+    console.error("FHIR get patient error:", error);
     res.status(500).json({
       resourceType: "OperationOutcome",
       issue: [
@@ -248,11 +248,11 @@ router.get('/Patient/:id', [
 });
 
 // Search FHIR Patients
-router.get('/Patient', requireRole(['doctor', 'nurse', 'admin']), auditLog('FHIR_SEARCH_PATIENTS', 'PATIENT'), async (req, res) => {
+router.get("/Patient", requireRole(["doctor", "nurse", "admin"]), auditLog("FHIR_SEARCH_PATIENTS", "PATIENT"), async (req, res) => {
   try {
     const { identifier, name, birthdate, gender, _count = 10, _offset = 0 } = req.query;
 
-    let query = 'SELECT * FROM patients WHERE 1=1';
+    let query = "SELECT * FROM patients WHERE 1=1";
     const params = [];
     let paramCount = 0;
 
@@ -303,7 +303,7 @@ router.get('/Patient', requireRole(['doctor', 'nurse', 'admin']), auditLog('FHIR
 
     res.json(bundle);
   } catch (error) {
-    console.error('FHIR search patients error:', error);
+    console.error("FHIR search patients error:", error);
     res.status(500).json({
       resourceType: "OperationOutcome",
       issue: [
@@ -318,7 +318,7 @@ router.get('/Patient', requireRole(['doctor', 'nurse', 'admin']), auditLog('FHIR
 });
 
 // Get FHIR Observations for a patient
-router.get('/Observation', requireRole(['doctor', 'nurse', 'admin']), auditLog('FHIR_GET_OBSERVATIONS', 'OBSERVATION'), async (req, res) => {
+router.get("/Observation", requireRole(["doctor", "nurse", "admin"]), auditLog("FHIR_GET_OBSERVATIONS", "OBSERVATION"), async (req, res) => {
   try {
     const { patient, category, code } = req.query;
 
@@ -365,7 +365,7 @@ router.get('/Observation', requireRole(['doctor', 'nurse', 'admin']), auditLog('
 
     res.json(bundle);
   } catch (error) {
-    console.error('FHIR get observations error:', error);
+    console.error("FHIR get observations error:", error);
     res.status(500).json({
       resourceType: "OperationOutcome",
       issue: [
@@ -380,13 +380,13 @@ router.get('/Observation', requireRole(['doctor', 'nurse', 'admin']), auditLog('
 });
 
 // Create/Update FHIR Patient
-router.put('/Patient/:id', [
-  param('id').isUUID(),
-  body('resourceType').equals('Patient'),
-  body('identifier').isArray(),
-  body('name').isArray(),
-  body('gender').isIn(['male', 'female', 'other', 'unknown'])
-], requireRole(['doctor', 'admin']), auditLog('FHIR_UPDATE_PATIENT', 'PATIENT'), async (req, res) => {
+router.put("/Patient/:id", [
+  param("id").isUUID(),
+  body("resourceType").equals("Patient"),
+  body("identifier").isArray(),
+  body("name").isArray(),
+  body("gender").isIn(["male", "female", "other", "unknown"])
+], requireRole(["doctor", "admin"]), auditLog("FHIR_UPDATE_PATIENT", "PATIENT"), async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -451,7 +451,7 @@ router.put('/Patient/:id', [
 
     res.json(updatedFhirPatient);
   } catch (error) {
-    console.error('FHIR update patient error:', error);
+    console.error("FHIR update patient error:", error);
     res.status(500).json({
       resourceType: "OperationOutcome",
       issue: [
@@ -466,7 +466,7 @@ router.put('/Patient/:id', [
 });
 
 // FHIR Capability Statement
-router.get('/metadata', (req, res) => {
+router.get("/metadata", (req, res) => {
   res.json({
     resourceType: "CapabilityStatement",
     id: "hie-capability",
@@ -515,5 +515,6 @@ router.get('/metadata', (req, res) => {
   });
 });
 
-module.exports = router;
+export default router;
+
 

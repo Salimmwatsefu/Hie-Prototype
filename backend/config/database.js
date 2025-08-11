@@ -1,5 +1,6 @@
-const { Pool } = require('pg');
-require('dotenv').config();
+import { Pool } from 'pg';
+import dotenv from 'dotenv';
+dotenv.config();
 
 const pool = new Pool({
   user: process.env.DB_USER || 'postgres',
@@ -28,7 +29,9 @@ const initializeDatabase = async () => {
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         email VARCHAR(255) UNIQUE NOT NULL,
         password_hash VARCHAR(255) NOT NULL,
-        role VARCHAR(50) NOT NULL CHECK (role IN ('doctor', 'nurse', 'admin')),
+        role VARCHAR(50) NOT NULL CHECK (role IN (
+          'doctor', 'nurse', 'admin'
+        )),
         first_name VARCHAR(100) NOT NULL,
         last_name VARCHAR(100) NOT NULL,
         nhif_id VARCHAR(50),
@@ -37,7 +40,9 @@ const initializeDatabase = async () => {
         mfa_enabled BOOLEAN DEFAULT false,
         mfa_secret VARCHAR(255),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        refresh_token VARCHAR(500),
+        last_login TIMESTAMP
       )
     `);
 
@@ -94,7 +99,8 @@ const initializeDatabase = async () => {
         details JSONB,
         ip_address INET,
         user_agent TEXT,
-        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        status VARCHAR(50) NOT NULL
       )
     `);
 
@@ -106,13 +112,34 @@ const initializeDatabase = async () => {
         claim_id VARCHAR(100),
         hospital_id VARCHAR(100),
         fraud_score DECIMAL(5,4) NOT NULL,
-        risk_level VARCHAR(20) NOT NULL CHECK (risk_level IN ('low', 'medium', 'high')),
+        risk_level VARCHAR(20) NOT NULL CHECK (risk_level IN (
+          'low', 'medium', 'high'
+        )),
         flags JSONB,
         model_version VARCHAR(50),
         detected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         reviewed BOOLEAN DEFAULT false,
         reviewer_id UUID REFERENCES users(id),
         review_notes TEXT
+      )
+    `);
+
+    // Enhanced Fraud alerts table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS enhanced_fraud_alerts (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        patient_id UUID REFERENCES patients(id),
+        fraud_type VARCHAR(100) NOT NULL,
+        fraud_confidence DECIMAL(5,4) NOT NULL,
+        total_amount DECIMAL(10,2),
+        procedure_count INTEGER,
+        hospital_count INTEGER,
+        anomalies JSONB,
+        procedures JSONB,
+        detection_rules JSONB,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        status VARCHAR(50) DEFAULT 'pending',
+        outcome JSONB
       )
     `);
 
@@ -125,7 +152,9 @@ const initializeDatabase = async () => {
         to_hospital VARCHAR(100) NOT NULL,
         transfer_reason TEXT,
         transfer_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'completed', 'cancelled')),
+        status VARCHAR(20) DEFAULT 'pending' CHECK (status IN (
+          'pending', 'completed', 'cancelled'
+        )),
         initiated_by UUID REFERENCES users(id),
         approved_by UUID REFERENCES users(id),
         notes TEXT
@@ -133,21 +162,24 @@ const initializeDatabase = async () => {
     `);
 
     // Create indexes for better performance
-    await pool.query('CREATE INDEX IF NOT EXISTS idx_patients_nhif_id ON patients(nhif_id)');
-    await pool.query('CREATE INDEX IF NOT EXISTS idx_medical_records_patient_id ON medical_records(patient_id)');
-    await pool.query('CREATE INDEX IF NOT EXISTS idx_audit_logs_user_id ON audit_logs(user_id)');
-    await pool.query('CREATE INDEX IF NOT EXISTS idx_fraud_logs_patient_id ON fraud_logs(patient_id)');
-    await pool.query('CREATE INDEX IF NOT EXISTS idx_fraud_logs_fraud_score ON fraud_logs(fraud_score DESC)');
+    await pool.query("CREATE INDEX IF NOT EXISTS idx_patients_nhif_id ON patients(nhif_id)");
+    await pool.query("CREATE INDEX IF NOT EXISTS idx_medical_records_patient_id ON medical_records(patient_id)");
+    await pool.query("CREATE INDEX IF NOT EXISTS idx_audit_logs_user_id ON audit_logs(user_id)");
+    await pool.query("CREATE INDEX IF NOT EXISTS idx_fraud_logs_patient_id ON fraud_logs(patient_id)");
+    await pool.query("CREATE INDEX IF NOT EXISTS idx_fraud_logs_fraud_score ON fraud_logs(fraud_score DESC)");
+    await pool.query("CREATE INDEX IF NOT EXISTS idx_enhanced_fraud_alerts_patient_id ON enhanced_fraud_alerts(patient_id)");
+    await pool.query("CREATE INDEX IF NOT EXISTS idx_enhanced_fraud_alerts_fraud_confidence ON enhanced_fraud_alerts(fraud_confidence DESC)");
 
-    console.log('Database tables initialized successfully');
+    console.log("Database tables initialized successfully");
   } catch (error) {
-    console.error('Error initializing database:', error);
+    console.error("Error initializing database:", error);
     throw error;
   }
 };
 
-module.exports = {
+export {
   pool,
   initializeDatabase
 };
+
 

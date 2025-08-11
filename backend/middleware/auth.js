@@ -1,8 +1,8 @@
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
-const crypto = require('crypto-js');
-const rateLimit = require('express-rate-limit');
-const { pool } = require('../config/database');
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
+import crypto from 'crypto-js';
+import rateLimit from 'express-rate-limit';
+import { pool } from '../config/database.js';
 
 // Rate limiting for authentication endpoints
 const authLimiter = rateLimit({
@@ -306,7 +306,7 @@ const validateFHIRCompliance = (req, res, next) => {
   next();
 };
 
-module.exports = {
+export {
   authLimiter,
   apiLimiter,
   authenticateToken,
@@ -323,4 +323,5 @@ module.exports = {
   generateMFASecret,
   validateFHIRCompliance
 };
+
 

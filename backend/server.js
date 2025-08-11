@@ -1,20 +1,21 @@
-const express = require("express");
-const cors = require("cors");
-const helmet = require("helmet");
-const morgan = require("morgan");
-const rateLimit = require("express-rate-limit");
-require("dotenv").config();
+import express from "express";
+import cors from "cors";
+import helmet from "helmet";
+import morgan from "morgan";
+import rateLimit from "express-rate-limit";
+import dotenv from "dotenv";
+dotenv.config();
 
-const { pool } = require("./config/database");
-const { apiLimiter, validateFHIRCompliance } = require("./middleware/auth");
+import { pool } from "./config/database.js";
+import { apiLimiter, validateFHIRCompliance } from "./middleware/auth.js";
 
 // Import routes
-const authRoutes = require("./routes/auth");
-const patientRoutes = require("./routes/patients");
-const fhirRoutes = require("./routes/fhir");
-const auditRoutes = require("./routes/audit");
-const fraudRoutes = require("./routes/fraud");
-const enhancedFraudRoutes = require("./routes/enhanced_fraud");
+import authRoutes from "./routes/auth.js";
+import patientRoutes from "./routes/patients.js";
+import fhirRoutes from "./routes/fhir.js";
+import auditRoutes from "./routes/audit.js";
+import fraudRoutes from "./routes/fraud.js";
+import enhancedFraudRoutes from "./routes/enhanced_fraud.js";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -244,4 +245,5 @@ const server = app.listen(PORT, "0.0.0.0", () => {
   console.log(`🔗 Health check: http://localhost:${PORT}/health` );
 });
 
-module.exports = app;
+export default app;
+

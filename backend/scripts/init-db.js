@@ -1,4 +1,4 @@
-const { initializeDatabase } = require('../config/database');
+import { initializeDatabase } from '../config/database.js';
 
 async function main() {
   try {
@@ -13,4 +13,5 @@ async function main() {
 }
 
 main();
+
 

@@ -1,7 +1,7 @@
-const express = require('express');
-const { param, query, validationResult } = require('express-validator');
-const { pool } = require('../config/database');
-const { authenticateToken, requireRole, auditLog } = require('../middleware/auth');
+import express from "express";
+import { param, query, validationResult } from "express-validator";
+import { pool } from "../config/database.js";
+import { authenticateToken, requireRole, auditLog } from "../middleware/auth.js";
 
 const router = express.Router();
 
@@ -9,16 +9,16 @@ const router = express.Router();
 router.use(authenticateToken);
 
 // Get audit logs (admin only)
-router.get('/', requireRole(['admin']), auditLog('VIEW_AUDIT_LOGS', 'AUDIT'), async (req, res) => {
+router.get("/", requireRole(["admin"]), auditLog("VIEW_AUDIT_LOGS", "AUDIT"), async (req, res) => {
   try {
-    const { 
-      page = 1, 
-      limit = 50, 
-      userId, 
-      action, 
-      resourceType, 
-      startDate, 
-      endDate 
+    const {
+      page = 1,
+      limit = 50,
+      userId,
+      action,
+      resourceType,
+      startDate,
+      endDate
     } = req.query;
     
     const offset = (page - 1) * limit;
@@ -116,7 +116,7 @@ router.get('/', requireRole(['admin']), auditLog('VIEW_AUDIT_LOGS', 'AUDIT'), as
     const auditLogs = result.rows.map(log => ({
       id: log.id,
       userId: log.user_id,
-      userName: log.first_name && log.last_name ? `${log.first_name} ${log.last_name}` : 'Unknown User',
+      userName: log.first_name && log.last_name ? `${log.first_name} ${log.last_name}` : "Unknown User",
       userEmail: log.email,
       userRole: log.role,
       action: log.action,
@@ -138,15 +138,15 @@ router.get('/', requireRole(['admin']), auditLog('VIEW_AUDIT_LOGS', 'AUDIT'), as
       }
     });
   } catch (error) {
-    console.error('Get audit logs error:', error);
-    res.status(500).json({ error: 'Failed to fetch audit logs' });
+    console.error("Get audit logs error:", error);
+    res.status(500).json({ error: "Failed to fetch audit logs" });
   }
 });
 
 // Get audit log by ID
-router.get('/:id', [
-  param('id').isUUID()
-], requireRole(['admin']), auditLog('VIEW_AUDIT_LOG', 'AUDIT'), async (req, res) => {
+router.get("/:id", [
+  param("id").isUUID()
+], requireRole(["admin"]), auditLog("VIEW_AUDIT_LOG", "AUDIT"), async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -163,7 +163,7 @@ router.get('/:id', [
     `, [id]);
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Audit log not found' });
+      return res.status(404).json({ error: "Audit log not found" });
     }
 
     const log = result.rows[0];
@@ -171,7 +171,7 @@ router.get('/:id', [
     res.json({
       id: log.id,
       userId: log.user_id,
-      userName: log.first_name && log.last_name ? `${log.first_name} ${log.last_name}` : 'Unknown User',
+      userName: log.first_name && log.last_name ? `${log.first_name} ${log.last_name}` : "Unknown User",
       userEmail: log.email,
       userRole: log.role,
       action: log.action,
@@ -183,17 +183,17 @@ router.get('/:id', [
       timestamp: log.timestamp
     });
   } catch (error) {
-    console.error('Get audit log error:', error);
-    res.status(500).json({ error: 'Failed to fetch audit log' });
+    console.error("Get audit log error:", error);
+    res.status(500).json({ error: "Failed to fetch audit log" });
   }
 });
 
 // Get audit statistics
-router.get('/stats/summary', requireRole(['admin']), auditLog('VIEW_AUDIT_STATS', 'AUDIT'), async (req, res) => {
+router.get("/stats/summary", requireRole(["admin"]), auditLog("VIEW_AUDIT_STATS", "AUDIT"), async (req, res) => {
   try {
     const { startDate, endDate } = req.query;
 
-    let dateFilter = '';
+    let dateFilter = "";
     const params = [];
     let paramCount = 0;
 
@@ -265,7 +265,7 @@ router.get('/stats/summary', requireRole(['admin']), auditLog('VIEW_AUDIT_STATS'
         count: parseInt(row.count)
       })),
       roleStats: roleStatsResult.rows.map(row => ({
-        role: row.role || 'Unknown',
+        role: row.role || "Unknown",
         count: parseInt(row.count)
       })),
       resourceStats: resourceStatsResult.rows.map(row => ({
@@ -278,15 +278,15 @@ router.get('/stats/summary', requireRole(['admin']), auditLog('VIEW_AUDIT_STATS'
       }))
     });
   } catch (error) {
-    console.error('Get audit stats error:', error);
-    res.status(500).json({ error: 'Failed to fetch audit statistics' });
+    console.error("Get audit stats error:", error);
+    res.status(500).json({ error: "Failed to fetch audit statistics" });
   }
 });
 
 // Get user activity summary
-router.get('/users/:userId/activity', [
-  param('userId').isUUID()
-], requireRole(['admin']), auditLog('VIEW_USER_ACTIVITY', 'AUDIT'), async (req, res) => {
+router.get("/users/:userId/activity", [
+  param("userId").isUUID()
+], requireRole(["admin"]), auditLog("VIEW_USER_ACTIVITY", "AUDIT"), async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -296,7 +296,7 @@ router.get('/users/:userId/activity', [
     const { userId } = req.params;
     const { startDate, endDate, limit = 50 } = req.query;
 
-    let dateFilter = '';
+    let dateFilter = "";
     const params = [userId];
     let paramCount = 1;
 
@@ -319,7 +319,7 @@ router.get('/users/:userId/activity', [
     `, [userId]);
 
     if (userResult.rows.length === 0) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: "User not found" });
     }
 
     const user = userResult.rows[0];
@@ -368,10 +368,11 @@ router.get('/users/:userId/activity', [
       }))
     });
   } catch (error) {
-    console.error('Get user activity error:', error);
-    res.status(500).json({ error: 'Failed to fetch user activity' });
+    console.error("Get user activity error:", error);
+    res.status(500).json({ error: "Failed to fetch user activity" });
   }
 });
 
-module.exports = router;
+export default router;
+
 

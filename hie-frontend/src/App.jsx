@@ -9,6 +9,8 @@ import AdminDashboard from './pages/AdminDashboard'
 import PatientList from './pages/PatientList'
 import PatientDetails from './pages/PatientDetails'
 import FraudAlerts from './pages/FraudAlerts'
+import EnhancedFraudDashboard from './pages/EnhancedFraudDashboard'
+import FraudDataInput from './pages/FraudDataInput'
 import AuditLogs from './pages/AuditLogs'
 import TransferPatient from './pages/TransferPatient'
 import './App.css'
@@ -50,8 +52,9 @@ function DashboardRouter() {
 
 function App() {
   return (
+     <Router>
     <AuthProvider>
-      <Router>
+     
         <div className="min-h-screen bg-background">
           <Routes>
             {/* Public Routes */}
@@ -106,6 +109,22 @@ function App() {
               </ProtectedRoute>
             } />
             
+            <Route path="/enhanced-fraud" element={
+              <ProtectedRoute allowedRoles={['doctor', 'admin']}>
+                <DashboardLayout>
+                  <EnhancedFraudDashboard />
+                </DashboardLayout>
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/fraud-input" element={
+              <ProtectedRoute allowedRoles={['doctor', 'admin']}>
+                <DashboardLayout>
+                  <FraudDataInput />
+                </DashboardLayout>
+              </ProtectedRoute>
+            } />
+            
             <Route path="/audit-logs" element={
               <ProtectedRoute allowedRoles={['admin']}>
                 <DashboardLayout>
@@ -130,10 +149,10 @@ function App() {
           
           <Toaster />
         </div>
-      </Router>
+      
     </AuthProvider>
+    </Router>
   )
 }
 
 export default App
-

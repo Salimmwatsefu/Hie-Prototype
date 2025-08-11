@@ -16,21 +16,20 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
 
-  // Check for existing token on app load
+  // On app load: check if token exists and fetch user profile
   useEffect(() => {
     const initializeAuth = async () => {
       try {
-        const token = localStorage.getItem('hie_token')
+        const token = localStorage.getItem('hie_access_token')  // read from authService token key
+        console.log('Token on login:', token);
         if (token) {
-          // Verify token and get user profile
           const userProfile = await authService.getProfile()
           setUser(userProfile)
           setIsAuthenticated(true)
         }
       } catch (error) {
         console.error('Auth initialization error:', error)
-        // Clear invalid token
-        localStorage.removeItem('hie_token')
+        
       } finally {
         setIsLoading(false)
       }
@@ -40,18 +39,16 @@ export const AuthProvider = ({ children }) => {
   }, [])
 
   const login = async (email, password) => {
+    setIsLoading(true)
     try {
-      setIsLoading(true)
       const response = await authService.login(email, password)
-      
-      // Store token
-      localStorage.setItem('hie_token', response.token)
-      
-      // Set user state
-      setUser(response.user)
-      setIsAuthenticated(true)
-      
-      return { success: true, user: response.user }
+
+      if (response.success) {
+        setUser(response.user)
+        setIsAuthenticated(true)
+      }
+
+      return response
     } catch (error) {
       console.error('Login error:', error)
       return { 
@@ -69,10 +66,12 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error('Logout error:', error)
     } finally {
-      // Clear local state regardless of API call success
-      localStorage.removeItem('hie_token')
       setUser(null)
       setIsAuthenticated(false)
+      // Clear tokens in localStorage (authService.logout already does this but just in case)
+      localStorage.removeItem('hie_access_token')
+      localStorage.removeItem('hie_refresh_token')
+      localStorage.removeItem('hie_user')
     }
   }
 
@@ -110,7 +109,7 @@ export const AuthProvider = ({ children }) => {
     login,
     logout,
     updateProfile,
-    changePassword
+    changePassword,
   }
 
   return (
@@ -119,4 +118,3 @@ export const AuthProvider = ({ children }) => {
     </AuthContext.Provider>
   )
 }
-

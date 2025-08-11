@@ -92,7 +92,7 @@ router.post('/register', [
 });
 
 // OAuth 2.0 Login endpoint
-router.post('/login', [
+/*router.post('/login', [
   body('email').isEmail().normalizeEmail(),
   body('password').notEmpty(),
   body('mfaCode').optional().isLength({ min: 6, max: 6 })
@@ -203,7 +203,77 @@ router.post('/login', [
       code: 'SERVER_ERROR'
     });
   }
+});*/
+
+// TEMP LOGIN FOR TESTING
+// TEMP LOGIN FOR TESTING
+router.post('/login', (req, res) => {
+  const { email, password, mfaCode } = req.body;
+
+  // Dummy users
+  const dummyUsers = [
+    {
+      email: 'doctor@hie.com',
+      userId: 'a93f4a1e-befd-4b64-8c7f-6542180a1bfc',
+      password: '12345678',
+      role: 'doctor',
+      firstName: 'Doctor',
+      lastName: 'KNH',
+      nhifId: 'NHIF123',
+      hospitalId: 'KNH001'
+    },
+    {
+      email: 'admin@hie.com',
+      userId: 'a93f4a1e-befd-4b64-8c7f-6542180a1dhy',
+      password: 'admin123',
+      role: 'admin',
+      firstName: 'Admin',
+      lastName: 'User',
+      nhifId: 'ADMIN-NHIF',
+      hospitalId: 'ADM001'
+    },
+    {
+      email: 'nurse@hie.com',
+      userId: 'a93f4a1e-befd-4b64-8c7f-6542180a1gkb',
+      password: 'nurse123',
+      role: 'nurse',
+      firstName: 'Nurse',
+      lastName: 'User',
+      nhifId: 'NURSE-NHIF',
+      hospitalId: 'NUR001'
+    }
+  ];
+
+  const user = dummyUsers.find(u => u.email === email && u.password === password);
+  if (!user) {
+    return res.status(401).json({
+      error: 'Invalid credentials',
+      code: 'INVALID_CREDENTIALS'
+    });
+  }
+
+  if (mfaCode && !['123456', '654321', '111111'].includes(mfaCode)) {
+    return res.status(401).json({
+      error: 'Invalid MFA code',
+      code: 'INVALID_MFA'
+    });
+  }
+
+  const accessToken = jwt.sign({ userId: user.userId, role: user.role }, process.env.JWT_SECRET, { expiresIn: '8h' });
+  const refreshToken = jwt.sign({ userId: user.userId, type: 'refresh' }, process.env.JWT_REFRESH_SECRET, { expiresIn: '7d' });
+
+  return res.json({
+    message: 'Login successful',
+    user,
+    tokens: {
+      accessToken,
+      refreshToken,
+      expiresIn: '8h'
+    }
+  });
 });
+
+
 
 // MFA verification endpoint
 router.post('/verify-mfa', [

@@ -65,47 +65,49 @@ api.interceptors.response.use(
 
 export const authService = {
   // Login with email and password
-  async login(email, password, mfaCode = null) {
-    try {
-      const response = await api.post('/auth/login', {
-        email,
-        password,
-        mfaCode
-      })
+  // Login with email and password
+async login(email, password, mfaCode = null) {
+  try {
+    // Only include mfaCode if it's not null
+    const payload = { email, password }
+    if (mfaCode) payload.mfaCode = mfaCode
 
-      const { user, tokens, requiresMFA, tempToken, message } = response.data
+    const response = await api.post('/auth/login', payload)
 
-      if (requiresMFA) {
-        return {
-          success: true,
-          requiresMFA: true,
-          tempToken,
-          message: message || 'MFA code required'
-        }
-      }
+    const { user, tokens, requiresMFA, tempToken, message } = response.data
 
-      // Store tokens and user data
-      if (tokens) {
-        localStorage.setItem('hie_access_token', tokens.accessToken)
-        localStorage.setItem('hie_refresh_token', tokens.refreshToken)
-        localStorage.setItem('hie_user', JSON.stringify(user))
-      }
-
+    if (requiresMFA) {
       return {
         success: true,
-        user,
-        tokens,
-        message: message || 'Login successful'
-      }
-    } catch (error) {
-      console.error('Login error:', error)
-      return {
-        success: false,
-        error: error.response?.data?.error || 'Login failed',
-        code: error.response?.data?.code
+        requiresMFA: true,
+        tempToken,
+        message: message || 'MFA code required'
       }
     }
-  },
+
+    // Store tokens and user data
+    if (tokens) {
+      localStorage.setItem('hie_access_token', tokens.accessToken)
+      localStorage.setItem('hie_refresh_token', tokens.refreshToken)
+      localStorage.setItem('hie_user', JSON.stringify(user))
+    }
+
+    return {
+      success: true,
+      user,
+      tokens,
+      message: message || 'Login successful'
+    }
+  } catch (error) {
+    console.error('Login error:', error)
+    return {
+      success: false,
+      error: error.response?.data?.error || 'Login failed',
+      code: error.response?.data?.code
+    }
+  }
+},
+
 
   // Verify MFA code
   async verifyMFA(tempToken, mfaCode) {

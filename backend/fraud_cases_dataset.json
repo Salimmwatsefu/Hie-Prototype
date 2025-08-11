@@ -1,0 +1,50 @@
+{
+  "metadata": {
+    "generated_at": "2025-08-04T05:57:12.263168",
+    "total_cases": 6,
+    "fraud_types": [
+      "multiple_impossible_procedures",
+      "multiple_impossible_heart_surgeries",
+      "multiple_impossible_arm_amputations",
+      "fake_kidney_transplant",
+      "billing_inflation",
+      "ghost_procedure"
+    ]
+  },
+  "cases": [
+    {
+      "id": "5a387d1b-0229-46f4-a50e-9981aae13a51",
+      "patient_id": "#123456",
+      "fraud_type": "multiple_impossible_procedures",
+      "fraud_confidence": 0.98,
+      "total_amount": 51200,
+      "procedure_count": 4,
+      "hospital_count": 4,
+      "insurance_provider_count": 4,
+      "procedures": [
+        {
+          "id": "1629da8b-098a-4057-9ba5-8bb00766a208",
+          "hospital": "Hospital A",
+          "hospital_id": "HOSP_A_001",
+          "procedure_code": "AMP001",
+          "procedure": "Left leg amputation",
+          "date": "2025-01-03",
+          "amount": 12000,
+          "insurance_provider": "NHIF",
+          "patient_name": "John Doe"
+        },
+        {
+          "id": "b9ed57aa-f5e7-4536-a19a-e6f91a40b91f",
+          "hospital": "Hospital B",
+          "hospital_id": "HOSP_B_002",
+          "procedure_code": "AMP002",
+          "procedure": "Right leg amputation",
+          "date": "2025-01-17",
+          "amount": 13500,
+          "insurance_provider": "AAR Insurance",
+          "patient_name": "Jonathan Doe"
+        }
+      ]
+    }
+  ]
+}

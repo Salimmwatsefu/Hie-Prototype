@@ -6,8 +6,8 @@ const { pool } = require('../config/database');
 
 // Rate limiting for authentication endpoints
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // limit each IP to 5 requests per windowMs
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 1000000, // allow 1000 requests per minute during dev
   message: {
     error: 'Too many authentication attempts, please try again later',
     code: 'RATE_LIMIT_EXCEEDED'
@@ -16,10 +16,11 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+
 // Rate limiting for general API endpoints
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  max: 100000, // limit each IP to 100 requests per windowMs
   message: {
     error: 'Too many API requests, please try again later',
     code: 'API_RATE_LIMIT_EXCEEDED'

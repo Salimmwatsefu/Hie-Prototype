@@ -75,16 +75,7 @@ export default function LoginPage() {
             <h1 className="text-3xl font-bold text-gray-900">HIE System</h1>
           </div>
           <p className="text-lg text-gray-600">Health Information Exchange</p>
-          <div className="flex items-center justify-center space-x-2">
-            <Badge variant="secondary" className="text-xs">
-              <Lock className="h-3 w-3 mr-1" />
-              AES-256 Encrypted
-            </Badge>
-            <Badge variant="secondary" className="text-xs">
-              <Smartphone className="h-3 w-3 mr-1" />
-              MFA Enabled
-            </Badge>
-          </div>
+          
         </div>
 
         {/* Login Form */}
@@ -207,28 +198,12 @@ export default function LoginPage() {
               </form>
             )}
 
-            {/* Demo Credentials */}
-            <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-              <h4 className="text-sm font-medium text-gray-700 mb-2">Demo Credentials:</h4>
-              <div className="text-xs text-gray-600 space-y-1">
-                <div><strong>Doctor:</strong> doctor@knh.co.ke / password123</div>
-                <div><strong>Nurse:</strong> nurse@knh.co.ke / password123</div>
-                <div><strong>Admin:</strong> admin@hie.co.ke / password123</div>
-              </div>
-            </div>
-
-            {/* Security Features */}
-            <div className="mt-4 text-center text-xs text-gray-500">
-              <p>Protected by OAuth 2.0, AES-256 encryption, and multi-factor authentication</p>
-            </div>
+           
           </CardContent>
         </Card>
 
         {/* Footer */}
-        <div className="text-center text-sm text-gray-500">
-          <p>© 2024 Health Information Exchange System</p>
-          <p>Secure • Compliant • Interoperable</p>
-        </div>
+        
       </div>
     </div>
   )

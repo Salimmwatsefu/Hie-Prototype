@@ -115,9 +115,14 @@ export default function DoctorDashboard() {
       {/* Welcome Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">
-            Welcome back, Dr. {user?.lastName}
+        
+          <h1 className="text-2xl font-bold text-gray-900">
+            Overview
           </h1>
+
+            {/*
+
+           
           <p className="text-gray-600 mt-1">
             {user?.hospitalId} • {new Date().toLocaleDateString('en-KE', { 
               weekday: 'long', 
@@ -126,13 +131,10 @@ export default function DoctorDashboard() {
               day: 'numeric' 
             })}
           </p>
+          */}
+
         </div>
-        <div className="flex items-center space-x-2">
-          <Badge className="bg-green-100 text-green-800 border-green-200">
-            <Shield className="h-3 w-3 mr-1" />
-            System Secure
-          </Badge>
-        </div>
+        
       </div>
 
       {/* Stats Cards */}

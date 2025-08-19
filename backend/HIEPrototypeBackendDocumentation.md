@@ -1104,6 +1104,154 @@ Retrieves a list of all audit logs with optional pagination and filters.
 
 
 
+
+### 3.5. Fraud Detection & Analytics Routes (`/api/fraud`)
+
+#### 3.5.1. `POST /api/fraud/analyze-procedures`
+Analyzes a patient's procedures for potential fraud, including:
+- Anatomical impossibilities (e.g., more amputations than possible)
+- Cross-provider patterns (e.g., same patient across multiple hospitals)
+- Temporal anomalies (e.g., surgeries too close together)
+
+**Roles:** `doctor`, `admin`  
+**Request Body:**
+```json
+{
+  "patient_id": "uuid-or-string",
+  "procedures": [
+    {
+      "procedure_name": "Leg amputation",
+      "hospital": "General Hospital",
+      "insurance_provider": "HealthSecure",
+      "patient_name": "John Doe",
+      "date": "2025-07-01",
+      "amount": 5000
+    }
+  ]
+}
+````
+
+**Success Response (200 OK):**
+
+```json
+{
+  "patient_id": "uuid",
+  "fraud_score": 0.75,
+  "risk_level": "HIGH",
+  "total_amount": 5000,
+  "procedure_count": 1,
+  "hospital_count": 1,
+  "violations": [ ... ],
+  "recommendations": [ ... ]
+}
+```
+
+**Error Responses:**
+
+* `400 Bad Request`: Validation failed or missing required fields.
+* `401 Unauthorized`: Invalid or missing access token.
+* `500 Internal Server Error`: Fraud analysis failed.
+
+---
+
+#### 3.5.2. `GET /api/fraud/cases/:id/details`
+
+Retrieves full details of a fraud case from the database.
+
+**Roles:** `doctor`, `admin`
+**Path Parameters:**
+
+* `id` (UUID, required): Fraud case ID.
+
+**Success Response (200 OK):**
+
+```json
+{
+  "case_id": "uuid",
+  "patient_id": "uuid",
+  "fraud_type": "anatomical_impossibility",
+  "fraud_confidence": 0.85,
+  "financial_impact": { ... },
+  "timeline": [ ... ],
+  "anomalies": [ ... ],
+  "procedures": [ ... ],
+  "detection_rules": { ... }
+}
+```
+
+**Error Responses:**
+
+* `400 Bad Request`: Invalid fraud case ID format.
+* `401 Unauthorized`: Invalid or missing access token.
+* `403 Forbidden`: User does not have the required role.
+* `404 Not Found`: Fraud case not found.
+* `500 Internal Server Error`: Failed to fetch fraud case details.
+
+---
+
+#### 3.5.3. `GET /api/fraud/analytics/charts`
+
+Retrieves aggregated fraud analytics for charting.
+
+**Roles:** `admin`
+**Query Parameters:**
+
+* `startDate` (date, optional)
+* `endDate` (date, optional)
+* `hospitalId` (string, optional)
+
+**Success Response (200 OK):**
+
+```json
+{
+  "fraud_trend": [ ... ],
+  "fraud_types": [ ... ],
+  "risk_levels": [ ... ],
+  "hospital_patterns": [ ... ],
+  "generated_at": "2025-08-11T10:00:00Z"
+}
+```
+
+**Error Responses:**
+
+* `400 Bad Request`: Invalid query parameters.
+* `401 Unauthorized`: Invalid or missing access token.
+* `403 Forbidden`: User does not have the required role.
+* `500 Internal Server Error`: Failed to fetch fraud analytics.
+
+---
+
+#### 3.5.4. `POST /api/fraud/load-sample-cases`
+
+Loads pre-generated sample fraud cases into the database.
+
+**Roles:** `admin`
+
+**Success Response (200 OK):**
+
+```json
+{
+  "message": "Successfully loaded 10 sample fraud cases",
+  "total_cases": 10,
+  "inserted_count": 10,
+  "leg_amputation_case_id": "uuid"
+}
+```
+
+**Error Responses:**
+
+* `401 Unauthorized`: Invalid or missing access token.
+* `403 Forbidden`: User does not have the required role.
+* `500 Internal Server Error`: Failed to load sample fraud cases.
+
+
+
+
+
+
+
+
+
 ## 4. Database Schema
 
 The HIE backend uses a PostgreSQL database. Below is a simplified representation of the key tables and their relationships.

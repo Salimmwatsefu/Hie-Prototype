@@ -112,10 +112,12 @@ export default function FraudDataInput() {
   }
 
   const updateProcedure = (id, field, value) => {
-    setProcedures(procedures.map(proc => 
-      proc.id === id ? { ...proc, [field]: value } : proc
-    ))
-  }
+  console.log('Updating proc id:', id, 'field:', field, 'value:', value);
+  setProcedures(procs => procs.map(proc => 
+    proc.id === id ? { ...proc, [field]: value } : proc
+  ))
+}
+
 
   const loadLegAmputationExample = () => {
     setPatientId('#123456')
@@ -173,6 +175,14 @@ export default function FraudDataInput() {
       return
     }
 
+    console.log("Procedures validation check:", procedures.map(p => ({
+  procedure: p.procedure,
+  hospital: p.hospital,
+  date: p.date,
+  amount: p.amount
+})))
+
+
     if (procedures.some(proc => !proc.procedure || !proc.hospital || !proc.date || !proc.amount)) {
       alert('Please fill in all required fields for each procedure')
       return
@@ -180,11 +190,11 @@ export default function FraudDataInput() {
 
     setLoading(true)
     try {
-      const response = await fetch('/api/enhanced-fraud/analyze-procedures', {
+      const response = await fetch('http://localhost:3000/api/enhanced-fraud/analyze-procedures', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${localStorage.getItem('hie_access_token')}`
         },
         body: JSON.stringify({
           patient_id: patientId,
@@ -236,8 +246,8 @@ export default function FraudDataInput() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Fraud Detection Testing</h1>
-          <p className="text-gray-600">Input procedure data to test fraud detection algorithms</p>
+          <h1 className="text-2xl font-bold text-gray-900">Fraud Detection Testing</h1>
+          <p className="text-gray-600 text-sm">Input procedure data to test fraud detection algorithms</p>
         </div>
         <div className="flex items-center gap-2">
           <Button 
@@ -321,52 +331,56 @@ export default function FraudDataInput() {
                     <div>
                       <Label>Procedure Type *</Label>
                       <Select
-                        value={procedure.procedure}
-                        onValueChange={(value) => {
-                          const selectedProc = procedureTypes.find(p => p.name === value)
-                          updateProcedure(procedure.id, 'procedure', value)
-                          if (selectedProc) {
-                            updateProcedure(procedure.id, 'procedure_code', selectedProc.code)
-                          }
-                        }}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select procedure" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {procedureTypes.map((proc) => (
-                            <SelectItem key={proc.code} value={proc.name}>
-                              {proc.name} ({proc.code})
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+  value={procedure.procedure_code}   // use code here
+  onValueChange={(code) => {
+    console.log("Procedure selected:", code)
+    const selectedProc = procedureTypes.find(p => p.code === code)
+    if (selectedProc) {
+      updateProcedure(procedure.id, 'procedure', selectedProc.name)
+      updateProcedure(procedure.id, 'procedure_code', selectedProc.code)
+    }
+  }}
+>
+  <SelectTrigger>
+    <SelectValue placeholder="Select procedure" />
+  </SelectTrigger>
+  <SelectContent>
+    {procedureTypes.map((proc) => (
+      <SelectItem key={proc.code} value={proc.code}>
+        {proc.name} ({proc.code})
+      </SelectItem>
+    ))}
+  </SelectContent>
+</Select>
+
                     </div>
 
                     <div>
-                      <Label>Hospital *</Label>
-                      <Select
-                        value={procedure.hospital}
-                        onValueChange={(value) => {
-                          const selectedHosp = hospitals.find(h => h.name === value)
-                          updateProcedure(procedure.id, 'hospital', value)
-                          if (selectedHosp) {
-                            updateProcedure(procedure.id, 'hospital_id', selectedHosp.id)
-                          }
-                        }}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select hospital" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {hospitals.map((hospital) => (
-                            <SelectItem key={hospital.id} value={hospital.name}>
-                              {hospital.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+  <Label>Hospital *</Label>
+  <Select
+  value={procedure.hospital_id || ''}
+  onValueChange={(value) => {
+    const selectedHosp = hospitals.find(h => h.id === value)
+    if (selectedHosp) {
+    updateProcedure(procedure.id, 'hospital', selectedHosp.name)
+    updateProcedure(procedure.id, 'hospital_id', selectedHosp.id)
+  }
+  }}
+>
+  <SelectTrigger>
+    <SelectValue placeholder="Select hospital" />
+  </SelectTrigger>
+  <SelectContent>
+    {hospitals.map((hospital) => (
+      <SelectItem key={hospital.id} value={hospital.id}>
+        {hospital.name}
+      </SelectItem>
+    ))}
+  </SelectContent>
+</Select>
+
+</div>
+
 
                     <div>
                       <Label>Date *</Label>

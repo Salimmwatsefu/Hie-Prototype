@@ -308,13 +308,15 @@ router.get(
 );
 
 // Get fraud analytics data for charts
+// Get fraud analytics data for charts
 router.get(
   "/analytics/charts",
-  
   auditLog("VIEW_FRAUD_ANALYTICS", "FRAUD"),
   async (req, res) => {
     try {
       const { startDate, endDate, hospitalId } = req.query;
+
+      console.log("📊 Incoming fraud analytics request params:", { startDate, endDate, hospitalId });
 
       let dateFilter = "";
       let hospitalFilter = "";
@@ -333,74 +335,84 @@ router.get(
         params.push(endDate);
       }
 
+      if (hospitalId) {
+        paramCount++;
+        hospitalFilter += ` AND hospital_count = $${paramCount}`;
+        params.push(hospitalId);
+      }
+
+      console.log("📊 Final SQL date filter:", dateFilter);
+      console.log("📊 Final SQL hospital filter:", hospitalFilter);
+      console.log("📊 Final query params array:", params);
+
       // Fraud detection rate over time
-      const trendResult = await pool.query(
-        `
-      SELECT DATE(created_at) as date, 
-             COUNT(*) as fraud_count,
-             AVG(fraud_confidence) as avg_confidence,
-             SUM(total_amount) as total_amount
-      FROM enhanced_fraud_alerts 
-      WHERE created_at >= CURRENT_DATE - INTERVAL '30 days' ${dateFilter}
-      GROUP BY DATE(created_at)
-      ORDER BY date
-    `,
-        params
-      );
+      const trendQuery = `
+        SELECT DATE(created_at) as date, 
+               COUNT(*) as fraud_count,
+               AVG(fraud_confidence) as avg_confidence,
+               SUM(total_amount) as total_amount
+        FROM enhanced_fraud_alerts 
+        WHERE created_at >= CURRENT_DATE - INTERVAL '30 days' ${dateFilter} ${hospitalFilter}
+        GROUP BY DATE(created_at)
+        ORDER BY date
+      `;
+      console.log("📊 Trend query:\n", trendQuery);
+      const trendResult = await pool.query(trendQuery, params);
+      console.log("📊 Trend rows returned:", trendResult.rows.length);
 
       // Fraud types distribution
-      const typeResult = await pool.query(
-        `
-      SELECT fraud_type, COUNT(*) as count, SUM(total_amount) as total_amount
-      FROM enhanced_fraud_alerts 
-      WHERE 1=1 ${dateFilter}
-      GROUP BY fraud_type
-      ORDER BY count DESC
-    `,
-        params
-      );
+      const typeQuery = `
+        SELECT fraud_type, COUNT(*) as count, SUM(total_amount) as total_amount
+        FROM enhanced_fraud_alerts 
+        WHERE 1=1 ${dateFilter} ${hospitalFilter}
+        GROUP BY fraud_type
+        ORDER BY count DESC
+      `;
+      console.log("📊 Type query:\n", typeQuery);
+      const typeResult = await pool.query(typeQuery, params);
+      console.log("📊 Type rows returned:", typeResult.rows.length);
 
       // Risk level distribution
-      const riskResult = await pool.query(
-        `
-      SELECT 
-        CASE 
-          WHEN fraud_confidence >= 0.8 THEN 'CRITICAL'
-          WHEN fraud_confidence >= 0.6 THEN 'HIGH'
-          WHEN fraud_confidence >= 0.3 THEN 'MEDIUM'
-          ELSE 'LOW'
-        END as risk_level,
-        COUNT(*) as count,
-        AVG(fraud_confidence) as avg_confidence
-      FROM enhanced_fraud_alerts 
-      WHERE 1=1 ${dateFilter}
-      GROUP BY 
-        CASE 
-          WHEN fraud_confidence >= 0.8 THEN 'CRITICAL'
-          WHEN fraud_confidence >= 0.6 THEN 'HIGH'
-          WHEN fraud_confidence >= 0.3 THEN 'MEDIUM'
-          ELSE 'LOW'
-        END
-      ORDER BY avg_confidence DESC
-    `,
-        params
-      );
+      const riskQuery = `
+        SELECT 
+          CASE 
+            WHEN fraud_confidence >= 0.8 THEN 'CRITICAL'
+            WHEN fraud_confidence >= 0.6 THEN 'HIGH'
+            WHEN fraud_confidence >= 0.3 THEN 'MEDIUM'
+            ELSE 'LOW'
+          END as risk_level,
+          COUNT(*) as count,
+          AVG(fraud_confidence) as avg_confidence
+        FROM enhanced_fraud_alerts 
+        WHERE 1=1 ${dateFilter} ${hospitalFilter}
+        GROUP BY 
+          CASE 
+            WHEN fraud_confidence >= 0.8 THEN 'CRITICAL'
+            WHEN fraud_confidence >= 0.6 THEN 'HIGH'
+            WHEN fraud_confidence >= 0.3 THEN 'MEDIUM'
+            ELSE 'LOW'
+          END
+        ORDER BY avg_confidence DESC
+      `;
+      console.log("📊 Risk query:\n", riskQuery);
+      const riskResult = await pool.query(riskQuery, params);
+      console.log("📊 Risk rows returned:", riskResult.rows.length);
 
       // Hospital fraud statistics
-      const hospitalResult = await pool.query(
-        `
-      SELECT 
-        hospital_count,
-        COUNT(*) as case_count,
-        AVG(fraud_confidence) as avg_confidence,
-        SUM(total_amount) as total_amount
-      FROM enhanced_fraud_alerts 
-      WHERE 1=1 ${dateFilter}
-      GROUP BY hospital_count
-      ORDER BY hospital_count
-    `,
-        params
-      );
+      const hospitalQuery = `
+        SELECT 
+          hospital_count,
+          COUNT(*) as case_count,
+          AVG(fraud_confidence) as avg_confidence,
+          SUM(total_amount) as total_amount
+        FROM enhanced_fraud_alerts 
+        WHERE 1=1 ${dateFilter} ${hospitalFilter}
+        GROUP BY hospital_count
+        ORDER BY hospital_count
+      `;
+      console.log("📊 Hospital query:\n", hospitalQuery);
+      const hospitalResult = await pool.query(hospitalQuery, params);
+      console.log("📊 Hospital rows returned:", hospitalResult.rows.length);
 
       const analytics = {
         fraud_trend: trendResult.rows.map((row) => ({
@@ -428,13 +440,15 @@ router.get(
         generated_at: new Date().toISOString(),
       };
 
+      console.log("📊 Final analytics response:", analytics);
       res.json(analytics);
     } catch (error) {
-      console.error("Get fraud analytics error:", error);
+      console.error("❌ Get fraud analytics error:", error);
       res.status(500).json({ error: "Failed to fetch fraud analytics" });
     }
   }
 );
+
 
 // Load sample fraud cases (including leg amputation case)
 router.post(
@@ -491,6 +505,23 @@ router.post(
     }
   }
 );
+
+
+router.get(
+  "/cases",
+  requireRole(["doctor", "admin"]),
+  auditLog("LIST_FRAUD_CASES", "FRAUD"),
+  async (req, res) => {
+    const limit = parseInt(req.query.limit) || 10;
+    // optionally add offset, filters...
+    const result = await pool.query(
+      `SELECT * FROM enhanced_fraud_alerts ORDER BY created_at DESC LIMIT $1`,
+      [limit]
+    );
+    res.json({ cases: result.rows });
+  }
+);
+
 
 // Helper functions
 function determineMainFraudType(violations) {

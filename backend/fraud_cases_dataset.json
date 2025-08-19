@@ -13,7 +13,7 @@
   },
   "cases": [
     {
-      "id": "5a387d1b-0229-46f4-a50e-9981aae13a51",
+      "id": "5c5fb2d1-17f1-457d-84e2-febf82994ed8",
       "patient_id": "#123456",
       "fraud_type": "multiple_impossible_procedures",
       "fraud_confidence": 0.98,
@@ -23,7 +23,7 @@
       "insurance_provider_count": 4,
       "procedures": [
         {
-          "id": "1629da8b-098a-4057-9ba5-8bb00766a208",
+          "id": "04070ca8-715e-41ee-a64f-4fdf4bd929f0",
           "hospital": "Hospital A",
           "hospital_id": "HOSP_A_001",
           "procedure_code": "AMP001",
@@ -34,7 +34,7 @@
           "patient_name": "John Doe"
         },
         {
-          "id": "b9ed57aa-f5e7-4536-a19a-e6f91a40b91f",
+          "id": "af939b08-4c2f-4e3a-98f2-6c8a58b3df40",
           "hospital": "Hospital B",
           "hospital_id": "HOSP_B_002",
           "procedure_code": "AMP002",
@@ -43,6 +43,96 @@
           "amount": 13500,
           "insurance_provider": "AAR Insurance",
           "patient_name": "Jonathan Doe"
+        }
+      ]
+    },
+    {
+      "id": "a9282796-1f6d-45a0-a5fd-77dc81f18ee3",
+      "patient_id": "#234567",
+      "fraud_type": "multiple_impossible_heart_surgeries",
+      "fraud_confidence": 0.95,
+      "total_amount": 75000,
+      "procedure_count": 3,
+      "hospital_count": 2,
+      "insurance_provider_count": 1,
+      "procedures": [
+        {
+          "id": "7acfe0de-4e6b-47f2-b3dc-b6db24b0af43",
+          "hospital": "Heart Center Nairobi",
+          "hospital_id": "HOSP_C_003",
+          "procedure_code": "HRT001",
+          "procedure": "Open heart surgery",
+          "date": "2025-02-10",
+          "amount": 25000,
+          "insurance_provider": "Jubilee Insurance",
+          "patient_name": "Jane Smith"
+        },
+        {
+          "id": "43156b47-0a8e-44dc-a6a3-973208fef2de",
+          "hospital": "Heart Center Nairobi",
+          "hospital_id": "HOSP_C_003",
+          "procedure_code": "HRT002",
+          "procedure": "Coronary bypass surgery",
+          "date": "2025-02-20",
+          "amount": 25000,
+          "insurance_provider": "Jubilee Insurance",
+          "patient_name": "Jane Smith"
+        },
+        {
+          "id": "edb617d0-b730-4d49-b36e-9cb8c7a142c4",
+          "hospital": "Cardio Clinic",
+          "hospital_id": "HOSP_D_004",
+          "procedure_code": "HRT003",
+          "procedure": "Heart valve replacement",
+          "date": "2025-02-25",
+          "amount": 25000,
+          "insurance_provider": "Jubilee Insurance",
+          "patient_name": "Jane Smith"
+        }
+      ]
+    },
+    {
+      "id": "a84c87e2-ff9b-4b41-8b6f-5e18c4a4e82d",
+      "patient_id": "#345678",
+      "fraud_type": "multiple_impossible_arm_amputations",
+      "fraud_confidence": 0.92,
+      "total_amount": 40000,
+      "procedure_count": 3,
+      "hospital_count": 3,
+      "insurance_provider_count": 2,
+      "procedures": [
+        {
+          "id": "df38a9ad-a5cc-4a19-bab0-83abef6b73e4",
+          "hospital": "Surgery Point",
+          "hospital_id": "HOSP_E_005",
+          "procedure_code": "ARM001",
+          "procedure": "Left arm amputation",
+          "date": "2025-03-05",
+          "amount": 13000,
+          "insurance_provider": "NHIF",
+          "patient_name": "Samuel Kim"
+        },
+        {
+          "id": "f550228f-d60b-48e3-a263-c9ecb196dcff",
+          "hospital": "Surgery Point",
+          "hospital_id": "HOSP_E_005",
+          "procedure_code": "ARM002",
+          "procedure": "Right arm amputation",
+          "date": "2025-03-12",
+          "amount": 13500,
+          "insurance_provider": "AAR Insurance",
+          "patient_name": "Samuel Kim"
+        },
+        {
+          "id": "cdbe9d10-d75b-4a92-a030-43b0181ad1c7",
+          "hospital": "Ortho Specialists",
+          "hospital_id": "HOSP_F_006",
+          "procedure_code": "ARM003",
+          "procedure": "Right arm amputation (again)",
+          "date": "2025-03-20",
+          "amount": 13500,
+          "insurance_provider": "NHIF",
+          "patient_name": "Sam Kim"
         }
       ]
     }

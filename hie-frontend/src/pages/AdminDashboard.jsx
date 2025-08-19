@@ -133,16 +133,11 @@ export default function AdminDashboard() {
       {/* Welcome Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-gray-900">
             System Administration
           </h1>
-          <p className="text-gray-600 mt-1">
-            HIE System Overview • {new Date().toLocaleDateString('en-KE', { 
-              weekday: 'long', 
-              year: 'numeric', 
-              month: 'long', 
-              day: 'numeric' 
-            })}
+          <p className="text-gray-600 mt-1 text-sm">
+            HIE System Overview • 
           </p>
         </div>
         <div className="flex items-center space-x-2">

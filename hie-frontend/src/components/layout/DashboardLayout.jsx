@@ -20,17 +20,15 @@ import {
 import {
   Shield,
   Users,
-  UserCheck,
-  AlertTriangle,
-  FileText,
-  Activity,
-  Settings,
-  LogOut,
-  Menu,
-  Home,
   ArrowRightLeft,
-  Lock,
-  Eye
+  AlertTriangle,
+  Eye,
+  Home,
+  FileText,
+  Menu,
+  LogOut,
+  Settings,
+  ChevronRight
 } from 'lucide-react'
 
 const navigationItems = {
@@ -60,7 +58,7 @@ const navigationItems = {
 const getRoleBadgeColor = (role) => {
   switch (role) {
     case 'doctor':
-      return 'bg-blue-100 text-blue-800 border-blue-200'
+      return 'bg-teal-100 text-teal-800 border-teal-200'
     case 'nurse':
       return 'bg-green-100 text-green-800 border-green-200'
     case 'admin':
@@ -77,53 +75,22 @@ function Sidebar({ className = '' }) {
   const navItems = navigationItems[user?.role] || []
   
   return (
-    <div className={`pb-12 ${className}`}>
-      <div className="space-y-4 py-4">
-        <div className="px-3 py-2">
-          <div className="flex items-center space-x-2 mb-4">
-            <Shield className="h-6 w-6 text-blue-600" />
-            <h2 className="text-lg font-semibold">HIE System</h2>
+    <div className={`pb-6 ${className}`}>
+      <div className="space-y-8 py-5">
+        <div className="px-4">
+          {/* Branding */}
+          <div className="flex items-center  space-x-3 mb-8 ">
+            <div className="bg-teal-600/10 p-2 rounded-lg">
+              <Shield className="h-6 w-6 text-teal-600" />
+            </div>
+            <h2 className="text-xl font-semibold tracking-tight">HIE System</h2>
           </div>
           
           {/* User Info */}
-          <div className="bg-gray-50 rounded-lg p-3 mb-4">
-            <div className="flex items-center space-x-3">
-              <Avatar className="h-10 w-10">
-                <AvatarFallback className="bg-blue-600 text-white">
-                  {user?.firstName?.[0]}{user?.lastName?.[0]}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">
-                  {user?.firstName} {user?.lastName}
-                </p>
-                <div className="flex items-center space-x-2 mt-1">
-                  <Badge className={`text-xs ${getRoleBadgeColor(user?.role)}`}>
-                    {user?.role?.toUpperCase()}
-                  </Badge>
-                  {user?.nhifId && (
-                    <Badge variant="outline" className="text-xs">
-                      {user.nhifId}
-                    </Badge>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
           
-          {/* Security Status */}
-          <div className="flex items-center justify-between text-xs text-gray-600 mb-4">
-            <div className="flex items-center space-x-1">
-              <Lock className="h-3 w-3" />
-              <span>AES-256 Active</span>
-            </div>
-            <Badge variant="secondary" className="text-xs">
-              Secure
-            </Badge>
-          </div>
           
           {/* Navigation */}
-          <nav className="space-y-1">
+          <nav className="space-y-1 mt-12">
             {navItems.map((item) => {
               const Icon = item.icon
               const isActive = location.pathname === item.href
@@ -133,15 +100,20 @@ function Sidebar({ className = '' }) {
                   key={item.name}
                   to={item.href}
                   className={`
-                    flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors
+                    group relative flex items-center justify-between px-4 py-3 text-sm rounded-xl transition-all
                     ${isActive 
-                      ? 'bg-blue-100 text-blue-900 border-r-2 border-blue-600' 
-                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                      ? 'bg-teal-50 font-semibold text-teal-700 shadow-sm' 
+                      : 'text-gray-600 hover:bg-gray-50'
                     }
                   `}
                 >
-                  <Icon className="mr-3 h-4 w-4" />
-                  {item.name}
+                  <div className="flex items-center">
+                    <div className={`p-2 mr-3 rounded-lg ${isActive ? 'bg-teal-200' : 'bg-gray-100 group-hover:bg-gray-200'}`}>
+                      <Icon className={`h-4 w-4 flex-shrink-0 ${isActive ? 'text-teal-600' : 'text-gray-500'}`} />
+                    </div>
+                    <span>{item.name}</span>
+                  </div>
+                  {isActive && <ChevronRight className="h-4 w-4 text-teal-500" />}
                 </Link>
               )
             })}
@@ -166,115 +138,116 @@ export default function DashboardLayout({ children }) {
     <div className="min-h-screen bg-gray-50">
       {/* Mobile sidebar */}
       <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-        <SheetContent side="left" className="w-64 p-0">
+        <SheetContent side="left" className="w-72 p-0">
           <Sidebar />
         </SheetContent>
       </Sheet>
 
       {/* Desktop sidebar */}
-      <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0">
+      <div className="hidden lg:flex lg:w-72 lg:flex-col lg:fixed lg:inset-y-0">
         <div className="flex-1 flex flex-col min-h-0 bg-white border-r border-gray-200">
           <Sidebar />
         </div>
       </div>
 
       {/* Main content */}
-      <div className="md:pl-64 flex flex-col flex-1">
+      <div className="lg:pl-72 flex flex-col flex-1">
         {/* Top header */}
-        <div className="sticky top-0 z-10 bg-white shadow-sm border-b border-gray-200">
-          <div className="flex items-center justify-between h-16 px-4">
+        <header className="sticky top-0 z-30 bg-white shadow-sm border-b border-gray-100">
+          <div className="flex items-center justify-between h-16 px-4 sm:px-6">
             <div className="flex items-center">
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="md:hidden"
-                    onClick={() => setSidebarOpen(true)}
-                  >
-                    <Menu className="h-5 w-5" />
-                  </Button>
-                </SheetTrigger>
-              </Sheet>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="lg:hidden mr-2"
+                onClick={() => setSidebarOpen(true)}
+              >
+                <Menu className="h-5 w-5" />
+              </Button>
               
-              <div className="ml-4 md:ml-0">
-                <h1 className="text-xl font-semibold text-gray-900">
-                  Health Information Exchange
-                </h1>
-                <p className="text-sm text-gray-500">
-                  {user?.hospitalId && `${user.hospitalId} • `}
-                  Real-time patient data sharing
+              <div className="flex flex-col">
+                <h1 className="text-base font-semibold text-gray-900">Dashboard</h1>
+                <p className="text-xs text-gray-500 mt-1">
+                  {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
                 </p>
               </div>
             </div>
 
             <div className="flex items-center space-x-4">
-              {/* System Status */}
-              <div className="hidden sm:flex items-center space-x-2">
-                <div className="flex items-center space-x-1 text-xs text-green-600">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                  <span>System Online</span>
-                </div>
-              </div>
-
               {/* User menu */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                  <Button variant="ghost" className="rounded-full flex items-center space-x-2">
                     <Avatar className="h-8 w-8">
-                      <AvatarFallback className="bg-blue-600 text-white text-xs">
+                      <AvatarFallback className="bg-teal-800 text-white text-xs">
                         {user?.firstName?.[0]}{user?.lastName?.[0]}
                       </AvatarFallback>
                     </Avatar>
+                    <span className="hidden sm:inline text-sm font-medium text-gray-700">
+                      {user?.firstName} {user?.lastName?.[0]}.
+                    </span>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end" forceMount>
-                  <DropdownMenuLabel className="font-normal">
-                    <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">
-                        {user?.firstName} {user?.lastName}
-                      </p>
-                      <p className="text-xs leading-none text-muted-foreground">
-                        {user?.email}
-                      </p>
-                      <div className="flex items-center space-x-2 mt-2">
-                        <Badge className={`text-xs ${getRoleBadgeColor(user?.role)}`}>
-                          {user?.role?.toUpperCase()}
-                        </Badge>
-                        {user?.nhifId && (
-                          <Badge variant="outline" className="text-xs">
-                            {user.nhifId}
-                          </Badge>
-                        )}
+                <DropdownMenuContent className="w-64" align="end" forceMount>
+                  <DropdownMenuLabel className="px-4 py-3">
+                    <div className="flex items-center space-x-3">
+                      <Avatar className="h-10 w-10">
+                        <AvatarFallback className="bg-teal-800 text-white">
+                          {user?.firstName?.[0]}{user?.lastName?.[0]}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="text-sm font-medium">
+                          {user?.firstName} {user?.lastName}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {user?.email}
+                        </p>
                       </div>
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem>
-                    <Settings className="mr-2 h-4 w-4" />
-                    <span>Settings</span>
+                  <DropdownMenuItem className="px-4 py-3">
+                    <div className="flex items-center space-x-3">
+                      <div className="p-2 rounded-lg bg-gray-100">
+                        <Settings className="h-4 w-4 text-gray-600" />
+                      </div>
+                      <span>Account Settings</span>
+                    </div>
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Eye className="mr-2 h-4 w-4" />
-                    <span>Activity Log</span>
+                  <DropdownMenuItem className="px-4 py-3">
+                    <div className="flex items-center space-x-3">
+                      <div className="p-2 rounded-lg bg-gray-100">
+                        <Eye className="h-4 w-4 text-gray-600" />
+                      </div>
+                      <span>Activity Log</span>
+                    </div>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout}>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Log out</span>
+                  <DropdownMenuItem 
+                    className="px-4 py-3 text-red-600 focus:bg-red-50"
+                    onClick={handleLogout}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className="p-2 rounded-lg bg-red-100">
+                        <LogOut className="h-4 w-4 text-red-600" />
+                      </div>
+                      <span>Log out</span>
+                    </div>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
           </div>
-        </div>
+        </header>
 
         {/* Page content */}
-        <main className="flex-1 p-6">
-          {children}
+        <main className="flex-1 p-4 sm:p-6">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 sm:p-6">
+            {children}
+          </div>
         </main>
       </div>
     </div>
   )
 }
-

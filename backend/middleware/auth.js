@@ -32,6 +32,10 @@ const authenticateToken = async (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
+  console.log("🔍 Incoming Authorization header:", authHeader);
+  console.log("🔍 Extracted token:", token);
+  console.log("🔍 JWT_SECRET at VERIFY time:", process.env.JWT_SECRET);
+
   if (!token) {
     await logAuditEvent(req, 'TOKEN_MISSING', 'AUTH', null, 'FAILED');
     return res.status(401).json({ 
@@ -42,6 +46,8 @@ const authenticateToken = async (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log("✅ Token successfully verified. Decoded payload:", decoded);
+    
     
     // Get user details from database
     const userResult = await pool.query(
@@ -267,6 +273,9 @@ const generateToken = (user) => {
     hospitalId: user.hospital_id,
     nhifId: user.nhif_id
   };
+
+  console.log("🛠 JWT_SECRET at SIGN time:", process.env.JWT_SECRET);
+  console.log("🛠 Payload being signed:", payload);
 
   return jwt.sign(payload, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN || '8h',

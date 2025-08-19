@@ -36,9 +36,6 @@ const navigationItems = {
     { name: 'Dashboard', href: '/dashboard', icon: Home },
     { name: 'Patients', href: '/patients', icon: Users },
     { name: 'Transfer Patient', href: '/transfer', icon: ArrowRightLeft },
-    { name: 'Enhanced Fraud Detection', href: '/enhanced-fraud', icon: Shield },
-    { name: 'Fraud Data Input', href: '/fraud-input', icon: Eye },
-    { name: 'Fraud Alerts', href: '/fraud-alerts', icon: AlertTriangle },
   ],
   nurse: [
     { name: 'Dashboard', href: '/dashboard', icon: Home },

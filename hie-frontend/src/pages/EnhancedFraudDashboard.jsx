@@ -45,6 +45,8 @@ import {
   CheckCircle2
 } from 'lucide-react'
 
+import API_BASE_URL from '../../api_url'
+
 const COLORS = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6']
 
 export default function EnhancedFraudDashboard() {
@@ -66,51 +68,51 @@ export default function EnhancedFraudDashboard() {
   }, [timeRange])
 
   const fetchDashboardData = async (retry = false) => {
-    try {
-      setLoading(true)
+  try {
+    setLoading(true)
 
-      const analyticsResponse = await fetch(
-        'http://localhost:3000/api/enhanced-fraud/analytics/charts',
-        { headers: { Authorization: `Bearer ${token}` } }
+    const analyticsResponse = await fetch(
+      `${API_BASE_URL}/enhanced-fraud/analytics/charts`,
+      { headers: { Authorization: `Bearer ${token}`, "ngrok-skip-browser-warning": "true" } }
+    )
+    const analyticsData = await analyticsResponse.json()
+
+    const casesResponse = await fetch(
+      `${API_BASE_URL}/enhanced-fraud/cases?limit=10`,
+      { headers: { Authorization: `Bearer ${token}`, "ngrok-skip-browser-warning": "true" } }
+    )
+    const casesData = await casesResponse.json()
+
+    if (analyticsData.fraud_trend.length === 0 && !retry) {
+      await fetch(
+        `${API_BASE_URL}/enhanced-fraud/load-sample-cases`,
+        { method: 'POST', headers: { Authorization: `Bearer ${token}`, "ngrok-skip-browser-warning": "true" } }
       )
-      const analyticsData = await analyticsResponse.json()
-
-      const casesResponse = await fetch(
-        'http://localhost:3000/api/enhanced-fraud/cases?limit=10',
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
-      const casesData = await casesResponse.json()
-
-      if (analyticsData.fraud_trend.length === 0 && !retry) {
-        await fetch(
-          'http://localhost:3000/api/enhanced-fraud/load-sample-cases',
-          { method: 'POST', headers: { Authorization: `Bearer ${token}` } }
-        )
-        return fetchDashboardData(true)
-      }
-
-      setDashboardData({
-        summary: {
-          totalCases: analyticsData.fraud_trend.reduce((sum, day) => sum + day.fraud_count, 0),
-          criticalCases: analyticsData.risk_levels.find(r => r.level === 'CRITICAL')?.count || 0,
-          totalAmount: analyticsData.fraud_trend.reduce((sum, day) => sum + day.total_amount, 0),
-          detectionRate: 98.5
-        },
-        charts: {
-          fraudTrend: analyticsData.fraud_trend,
-          fraudTypes: analyticsData.fraud_types,
-          riskLevels: analyticsData.risk_levels,
-          hospitalPatterns: analyticsData.hospital_patterns
-        },
-        recentCases: casesData.cases || [],
-        legAmputationCase: casesData.cases?.find(c => c.patient_id === '#123456') || null
-      })
-    } catch (error) {
-      console.error('Failed to fetch dashboard data:', error)
-    } finally {
-      setLoading(false)
+      return fetchDashboardData(true)
     }
+
+    setDashboardData({
+      summary: {
+        totalCases: analyticsData.fraud_trend.reduce((sum, day) => sum + day.fraud_count, 0),
+        criticalCases: analyticsData.risk_levels.find(r => r.level === 'CRITICAL')?.count || 0,
+        totalAmount: analyticsData.fraud_trend.reduce((sum, day) => sum + day.total_amount, 0),
+        detectionRate: 98.5
+      },
+      charts: {
+        fraudTrend: analyticsData.fraud_trend,
+        fraudTypes: analyticsData.fraud_types,
+        riskLevels: analyticsData.risk_levels,
+        hospitalPatterns: analyticsData.hospital_patterns
+      },
+      recentCases: casesData.cases || [],
+      legAmputationCase: casesData.cases?.find(c => c.patient_id === '#123456') || null
+    })
+  } catch (error) {
+    console.error('Failed to fetch dashboard data:', error)
+  } finally {
+    setLoading(false)
   }
+}
 
   const formatCurrency = (amount) =>
     new Intl.NumberFormat('en-US', {

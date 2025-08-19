@@ -37,6 +37,8 @@ import {
   User
 } from 'lucide-react'
 
+import API_BASE_URL from '../../api_url'
+
 export default function FraudDataInput() {
   const { user } = useAuth()
   const [procedures, setProcedures] = useState([{
@@ -190,12 +192,15 @@ export default function FraudDataInput() {
 
     setLoading(true)
     try {
-      const response = await fetch('http://localhost:3000/api/enhanced-fraud/analyze-procedures', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('hie_access_token')}`
-        },
+      const response = await fetch(
+  `${API_BASE_URL}/enhanced-fraud/analyze-procedures`,
+  {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${localStorage.getItem('hie_access_token')}`,
+      'ngrok-skip-browser-warning': 'true'
+    },
         body: JSON.stringify({
           patient_id: patientId,
           procedures: procedures.map(proc => ({

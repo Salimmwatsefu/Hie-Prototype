@@ -97,7 +97,7 @@ export default function AddPatient({ isOpen, onClose, onPatientAdded }) {
       patient_name: 'James Kariuki'
     }
   ],
-  'NHIF-44444': [
+  'NHIF-55555': [
     {
       procedure: 'Hip replacement surgery',
       procedure_code: 'ORT101',
@@ -106,7 +106,7 @@ export default function AddPatient({ isOpen, onClose, onPatientAdded }) {
       date: '2025-08-05',
       amount: 28000,
       insurance_provider: 'SHA',
-      patient_name: 'Susan Njeri'
+      patient_name: 'Bella Njeri'
     },
     {
       procedure: 'Hip replacement surgery',
@@ -116,7 +116,7 @@ export default function AddPatient({ isOpen, onClose, onPatientAdded }) {
       date: '2025-08-07',
       amount: 29000,
       insurance_provider: 'SHA',
-      patient_name: 'Susan N.'
+      patient_name: 'Bella N.'
     },
     {
       procedure: 'Knee arthroscopy',
@@ -126,7 +126,7 @@ export default function AddPatient({ isOpen, onClose, onPatientAdded }) {
       date: '2025-08-10',
       amount: 12000,
       insurance_provider: 'SHA',
-      patient_name: 'Susan Njeri'
+      patient_name: ' Bella Njeri'
     },
     {
       procedure: 'Knee arthroscopy',
@@ -136,21 +136,21 @@ export default function AddPatient({ isOpen, onClose, onPatientAdded }) {
       date: '2025-08-12',
       amount: 12500,
       insurance_provider: 'SHA',
-      patient_name: 'Susan N.'
+      patient_name: ' Bella N.'
     }
   ],
-  'NHIF-55555': []
+  'NHIF-55666': []
 }
 
 
   const loadSampleData = () => {
     setFormData({
-      nhifId: 'NHIF-22222',
-      firstName: 'Alice',
-      lastName: 'Wambui',
-      dateOfBirth: '2002-07-16',
-      gender: 'male',
-      phone: '0721277779',
+      nhifId: 'NHIF-55555',
+      firstName: 'Bella',
+      lastName: 'Njeri',
+      dateOfBirth: '1995-07-16',
+      gender: 'female',
+      phone: '0728277779',
       email: 'alice@gmail.com',
       address: 'Roysambu, Nairobi',
       emergencyContactName: 'Onyango Otieno',
@@ -166,7 +166,7 @@ export default function AddPatient({ isOpen, onClose, onPatientAdded }) {
         { name: 'Ventolin', dosage: '2 puffs', frequency: 'As needed' }
       ],
       insuranceProvider: 'SHA',
-      insurancePolicyNumber: 'POL456722'
+      insurancePolicyNumber: 'POL456788'
     })
   }
 

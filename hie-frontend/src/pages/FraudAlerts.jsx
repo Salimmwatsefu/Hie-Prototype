@@ -26,14 +26,15 @@ import {
   CheckCircle,
   XCircle,
   Clock,
-  TrendingUp,
-  Filter,
   RefreshCw,
-  Flag
+  Flag,
+  Filter
 } from 'lucide-react'
 
+import API_BASE_URL from '../../api_url'
+
 export default function FraudAlerts() {
-  const { user } = useAuth()
+  const { user} = useAuth()
   const [alerts, setAlerts] = useState([])
   const [loading, setLoading] = useState(true)
   const [riskFilter, setRiskFilter] = useState('all')
@@ -48,6 +49,8 @@ export default function FraudAlerts() {
     reviewed: 0,
     pending: 0
   })
+  const token = localStorage.getItem("hie_access_token")
+
 
   useEffect(() => {
     loadFraudAlerts()
@@ -56,98 +59,58 @@ export default function FraudAlerts() {
   const loadFraudAlerts = async () => {
     setLoading(true)
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      // Mock fraud alerts data
-      const mockAlerts = [
-        {
-          id: '1',
-          patientName: 'John Kamau',
-          nhifId: 'NHIF-54321',
-          claimId: 'CLM-2024-001',
-          hospitalId: 'Kenyatta National Hospital',
-          fraudScore: 0.84,
-          riskLevel: 'high',
-          flags: ['duplicate_billing', 'unusual_frequency', 'high_cost_claim'],
-          detectedAt: '2024-07-19T10:30:00Z',
-          reviewed: false,
-          reviewerId: null,
-          reviewNotes: null,
-          modelVersion: 'v2.1.0'
-        },
-        {
-          id: '2',
-          patientName: 'Mary Akinyi',
-          nhifId: 'NHIF-98765',
-          claimId: 'CLM-2024-002',
-          hospitalId: 'Moi Teaching and Referral Hospital',
-          fraudScore: 0.67,
-          riskLevel: 'medium',
-          flags: ['high_cost_claim', 'unusual_timing'],
-          detectedAt: '2024-07-19T08:15:00Z',
-          reviewed: true,
-          reviewerId: user?.id,
-          reviewNotes: 'Reviewed and approved - legitimate emergency procedure',
-          modelVersion: 'v2.1.0'
-        },
-        {
-          id: '3',
-          patientName: 'Peter Ochieng',
-          nhifId: 'NHIF-13579',
-          claimId: 'CLM-2024-003',
-          hospitalId: 'Kenyatta National Hospital',
-          fraudScore: 0.92,
-          riskLevel: 'high',
-          flags: ['duplicate_billing', 'phantom_billing', 'unusual_frequency'],
-          detectedAt: '2024-07-19T06:45:00Z',
-          reviewed: false,
-          reviewerId: null,
-          reviewNotes: null,
-          modelVersion: 'v2.1.0'
-        },
-        {
-          id: '4',
-          patientName: 'Grace Wanjiku',
-          nhifId: 'NHIF-24680',
-          claimId: 'CLM-2024-004',
-          hospitalId: 'Moi Teaching and Referral Hospital',
-          fraudScore: 0.45,
-          riskLevel: 'low',
-          flags: ['unusual_timing'],
-          detectedAt: '2024-07-18T16:20:00Z',
-          reviewed: true,
-          reviewerId: user?.id,
-          reviewNotes: 'False positive - patient had emergency visit',
-          modelVersion: 'v2.1.0'
+      const res = await fetch(`${API_BASE_URL}/fraud/alerts`, {
+        
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'ngrok-skip-browser-warning': 'true'
         }
-      ]
+      })
+      if (!res.ok) throw new Error('Failed to fetch fraud alerts')
+      const data = await res.json()
+
+      // Transform backend alerts into UI shape
+      let backendAlerts = data.fraudAlerts || []
+
+      let transformed = backendAlerts.map(alert => ({
+        id: alert.id,
+        patientName: alert.patientName || alert.patientId, // if you join with patients in backend, use name
+        nhifId: alert.patientNhifId || 'N/A',
+        claimId: alert.claimId,
+        hospitalId: alert.hospitalId,
+        fraudScore: alert.fraudScore,
+        riskLevel: alert.riskLevel,
+        flags: Array.isArray(alert.flags) ? alert.flags : Object.keys(alert.flags || {}),
+        detectedAt: alert.detectedAt,
+        reviewed: alert.reviewed || false,
+        reviewerId: alert.reviewerId,
+        reviewNotes: alert.reviewNotes,
+        modelVersion: alert.modelVersion || 'v1.0'
+      }))
 
       // Apply filters
-      let filteredAlerts = mockAlerts
-      
       if (riskFilter !== 'all') {
-        filteredAlerts = filteredAlerts.filter(alert => alert.riskLevel === riskFilter)
+        transformed = transformed.filter(a => a.riskLevel === riskFilter)
       }
-      
       if (statusFilter !== 'all') {
         const isReviewed = statusFilter === 'reviewed'
-        filteredAlerts = filteredAlerts.filter(alert => alert.reviewed === isReviewed)
+        transformed = transformed.filter(a => a.reviewed === isReviewed)
       }
 
-      setAlerts(filteredAlerts)
+      setAlerts(transformed)
 
-      // Calculate stats
+      // Stats
       setStats({
-        total: mockAlerts.length,
-        high: mockAlerts.filter(a => a.riskLevel === 'high').length,
-        medium: mockAlerts.filter(a => a.riskLevel === 'medium').length,
-        low: mockAlerts.filter(a => a.riskLevel === 'low').length,
-        reviewed: mockAlerts.filter(a => a.reviewed).length,
-        pending: mockAlerts.filter(a => !a.reviewed).length
+        total: backendAlerts.length,
+        high: backendAlerts.filter(a => a.riskLevel === 'high').length,
+        medium: backendAlerts.filter(a => a.riskLevel === 'medium').length,
+        low: backendAlerts.filter(a => a.riskLevel === 'low').length,
+        reviewed: backendAlerts.filter(a => a.reviewed).length,
+        pending: backendAlerts.filter(a => !a.reviewed).length
       })
-    } catch (error) {
-      console.error('Error loading fraud alerts:', error)
+    } catch (err) {
+      console.error('Error loading fraud alerts:', err)
     } finally {
       setLoading(false)
     }
@@ -155,39 +118,36 @@ export default function FraudAlerts() {
 
   const getRiskBadgeColor = (riskLevel) => {
     switch (riskLevel) {
-      case 'high':
-        return 'bg-red-100 text-red-800 border-red-200'
-      case 'medium':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200'
-      case 'low':
-        return 'bg-green-100 text-green-800 border-green-200'
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200'
+      case 'high': return 'bg-red-100 text-red-800 border-red-200'
+      case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-200'
+      case 'low': return 'bg-green-100 text-green-800 border-green-200'
+      default: return 'bg-gray-100 text-gray-800 border-gray-200'
     }
   }
 
   const handleReviewAlert = async (alertId, action) => {
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500))
-      
-      // Update alert status
-      setAlerts(prev => prev.map(alert => 
-        alert.id === alertId 
-          ? { ...alert, reviewed: true, reviewerId: user?.id, reviewNotes }
-          : alert
-      ))
-      
+      const res = await fetch(`${API_BASE_URL}/fraud/alerts/${alertId}/review`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          action,
+          reviewerId: user?.id,
+          reviewNotes
+        })
+      })
+      if (!res.ok) throw new Error('Failed to review alert')
+
       setSelectedAlert(null)
       setReviewNotes('')
-      
-      // Reload stats
       loadFraudAlerts()
-    } catch (error) {
-      console.error('Error reviewing alert:', error)
+    } catch (err) {
+      console.error('Error reviewing alert:', err)
     }
   }
-
   return (
     <div className="space-y-6">
       {/* Header */}

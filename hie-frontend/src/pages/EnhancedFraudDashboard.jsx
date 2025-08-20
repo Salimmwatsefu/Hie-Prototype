@@ -3,13 +3,12 @@ import { useAuth } from '../contexts/AuthContext'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Alert, AlertDescription } from '@/components/ui/alert'
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
-  DialogTitle
+  DialogTitle,
+  DialogDescription
 } from '@/components/ui/dialog'
 import {
   LineChart,
@@ -25,24 +24,17 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer
 } from 'recharts'
 import {
   AlertTriangle,
-  TrendingUp,
-  DollarSign,
-  Users,
-  Activity,
-  Eye,
-  Shield,
-  Target,
-  Brain,
   Zap,
+  DollarSign,
+  Target,
+  Users,
+  Shield,
   XCircle,
-  MapPin,
-  FileText,
-  CheckCircle2
+  MapPin
 } from 'lucide-react'
 
 import API_BASE_URL from '../../api_url'
@@ -61,66 +53,55 @@ export default function EnhancedFraudDashboard() {
   })
   const [loading, setLoading] = useState(true)
   const [selectedCase, setSelectedCase] = useState(null)
-  const [timeRange, setTimeRange] = useState('30d')
+  const [modalOpen, setModalOpen] = useState(false)
 
   useEffect(() => {
     fetchDashboardData()
-  }, [timeRange])
+  }, [])
 
   const fetchDashboardData = async (retry = false) => {
-  try {
-    setLoading(true)
+    try {
+      setLoading(true)
+      const analyticsResponse = await fetch(`${API_BASE_URL}/enhanced-fraud/analytics/charts`, {
+        headers: { Authorization: `Bearer ${token}`, "ngrok-skip-browser-warning": "true" }
+      })
+      const analyticsData = await analyticsResponse.json()
 
-    const analyticsResponse = await fetch(
-      `${API_BASE_URL}/enhanced-fraud/analytics/charts`,
-      { headers: { Authorization: `Bearer ${token}`, "ngrok-skip-browser-warning": "true" } }
-    )
-    const analyticsData = await analyticsResponse.json()
+      const casesResponse = await fetch(`${API_BASE_URL}/enhanced-fraud/cases?limit=10`, {
+        headers: { Authorization: `Bearer ${token}`, "ngrok-skip-browser-warning": "true" }
+      })
+      const casesData = await casesResponse.json()
 
-    const casesResponse = await fetch(
-      `${API_BASE_URL}/enhanced-fraud/cases?limit=10`,
-      { headers: { Authorization: `Bearer ${token}`, "ngrok-skip-browser-warning": "true" } }
-    )
-    const casesData = await casesResponse.json()
+      if (analyticsData.fraud_trend.length === 0 && !retry) {
+        await fetch(`${API_BASE_URL}/enhanced-fraud/load-sample-cases`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } })
+        return fetchDashboardData(true)
+      }
 
-    if (analyticsData.fraud_trend.length === 0 && !retry) {
-      await fetch(
-        `${API_BASE_URL}/enhanced-fraud/load-sample-cases`,
-        { method: 'POST', headers: { Authorization: `Bearer ${token}`, "ngrok-skip-browser-warning": "true" } }
-      )
-      return fetchDashboardData(true)
+      setDashboardData({
+        summary: {
+          totalCases: analyticsData.fraud_trend.reduce((sum, day) => sum + day.fraud_count, 0),
+          criticalCases: analyticsData.risk_levels.find(r => r.level === 'CRITICAL')?.count || 0,
+          totalAmount: analyticsData.fraud_trend.reduce((sum, day) => sum + day.total_amount, 0),
+          detectionRate: 98.5
+        },
+        charts: {
+          fraudTrend: analyticsData.fraud_trend,
+          fraudTypes: analyticsData.fraud_types,
+          riskLevels: analyticsData.risk_levels,
+          hospitalPatterns: analyticsData.hospital_patterns
+        },
+        recentCases: casesData.cases || [],
+        legAmputationCase: casesData.cases?.find(c => c.patient_id === '#123456') || null
+      })
+    } catch (error) {
+      console.error('Failed to fetch dashboard data:', error)
+    } finally {
+      setLoading(false)
     }
-
-    setDashboardData({
-      summary: {
-        totalCases: analyticsData.fraud_trend.reduce((sum, day) => sum + day.fraud_count, 0),
-        criticalCases: analyticsData.risk_levels.find(r => r.level === 'CRITICAL')?.count || 0,
-        totalAmount: analyticsData.fraud_trend.reduce((sum, day) => sum + day.total_amount, 0),
-        detectionRate: 98.5
-      },
-      charts: {
-        fraudTrend: analyticsData.fraud_trend,
-        fraudTypes: analyticsData.fraud_types,
-        riskLevels: analyticsData.risk_levels,
-        hospitalPatterns: analyticsData.hospital_patterns
-      },
-      recentCases: casesData.cases || [],
-      legAmputationCase: casesData.cases?.find(c => c.patient_id === '#123456') || null
-    })
-  } catch (error) {
-    console.error('Failed to fetch dashboard data:', error)
-  } finally {
-    setLoading(false)
   }
-}
 
   const formatCurrency = (amount) =>
-    new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(amount)
+    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(amount)
 
   const getRiskBadgeColor = (riskLevel) => {
     switch (riskLevel?.toUpperCase()) {
@@ -131,6 +112,24 @@ export default function EnhancedFraudDashboard() {
       default: return 'bg-gray-500 text-white'
     }
   }
+
+  const openCaseModal = (fraudCase) => {
+    setSelectedCase(fraudCase)
+    setModalOpen(true)
+  }
+
+  const closeModal = () => {
+    setSelectedCase(null)
+    setModalOpen(false)
+  }
+
+  const MetricBox = ({ value, label, note, color }) => (
+    <div className="text-center p-4 bg-white rounded-xl border shadow-sm">
+      <div className={`text-2xl font-bold ${color}`}>{value}</div>
+      <div className="text-sm text-gray-600">{label}</div>
+      <div className="text-xs text-gray-400">{note}</div>
+    </div>
+  )
 
   const LegAmputationCaseCard = ({ fraudCase }) => {
     if (!fraudCase) return null
@@ -162,34 +161,12 @@ export default function EnhancedFraudDashboard() {
             <li className="flex gap-2 items-center"><Users className="h-4 w-4 text-yellow-500" />Same patient ID with multiple name variations</li>
             <li className="flex gap-2 items-center"><Shield className="h-4 w-4 text-blue-500" />Claims to 4 insurance providers</li>
           </ul>
-          <div className="flex gap-2 pt-2">
-            <Button onClick={() => setSelectedCase(fraudCase)} className="bg-red-600 hover:bg-red-700">
-              <Eye className="h-4 w-4 mr-2" /> View Analysis
-            </Button>
-            <Button variant="outline" className="border-red-300 text-red-700">
-              <FileText className="h-4 w-4 mr-2" /> Report
-            </Button>
-          </div>
         </CardContent>
       </Card>
     )
   }
 
-  const MetricBox = ({ value, label, note, color }) => (
-    <div className="text-center p-4 bg-white rounded-xl border shadow-sm">
-      <div className={`text-2xl font-bold ${color}`}>{value}</div>
-      <div className="text-sm text-gray-600">{label}</div>
-      <div className="text-xs text-gray-400">{note}</div>
-    </div>
-  )
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
-    )
-  }
+  if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>
 
   return (
     <div className="space-y-8">
@@ -199,10 +176,9 @@ export default function EnhancedFraudDashboard() {
           <h1 className="text-2xl font-semibold text-gray-900">Enhanced Fraud Detection</h1>
           <p className="text-gray-500 text-sm">Advanced AI-powered fraud detection and analysis</p>
         </div>
-       
       </div>
 
-      {/* Summary Metrics */}
+      {/* Summary */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {[
           { title: 'Total Cases', value: dashboardData.summary.totalCases, icon: AlertTriangle, color: 'text-red-500' },
@@ -223,9 +199,7 @@ export default function EnhancedFraudDashboard() {
       </div>
 
       {/* Featured Case */}
-      {dashboardData.legAmputationCase && (
-        <LegAmputationCaseCard fraudCase={dashboardData.legAmputationCase} />
-      )}
+      {dashboardData.legAmputationCase && <LegAmputationCaseCard fraudCase={dashboardData.legAmputationCase} />}
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -235,7 +209,7 @@ export default function EnhancedFraudDashboard() {
         <ChartCard title="Hospital Patterns" description="By Number of Hospitals" type="area" data={dashboardData.charts.hospitalPatterns} />
       </div>
 
-      {/* Table */}
+      {/* Recent Cases Table */}
       <Card className="rounded-2xl border border-gray-100 shadow-sm">
         <CardHeader>
           <CardTitle>Recent Fraud Cases</CardTitle>
@@ -245,41 +219,62 @@ export default function EnhancedFraudDashboard() {
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm">
               <thead className="bg-gray-50 sticky top-0">
-                <tr>
-                  {['Patient ID', 'Fraud Type', 'Confidence', 'Amount', 'Risk', 'Date', ''].map((h, i) => (
-                    <th key={i} className="px-6 py-3 text-left font-medium text-gray-500">{h}</th>
-                  ))}
-                </tr>
+                <tr>{['Patient ID', 'Fraud Type', 'Confidence', 'Amount', 'Risk', 'Date', ''].map((h, i) => (
+                  <th key={i} className="px-6 py-3 text-left font-medium text-gray-500">{h}</th>
+                ))}</tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {dashboardData.recentCases.length > 0 ? (
-                  dashboardData.recentCases.map((c) => (
-                    <tr key={c.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4">{c.patient_id}</td>
-                      <td className="px-6 py-4 text-gray-600">{c.fraud_type.replace(/_/g, ' ')}</td>
-                      <td className="px-6 py-4">{(c.fraud_confidence * 100).toFixed(1)}%</td>
-                      <td className="px-6 py-4">{formatCurrency(c.total_amount)}</td>
-                      <td className="px-6 py-4"><Badge className={getRiskBadgeColor(c.risk_level)}>{c.risk_level}</Badge></td>
-                      <td className="px-6 py-4">{new Date(c.created_at).toLocaleDateString()}</td>
-                      <td className="px-6 py-4 text-right">
-                        <Button variant="outline" size="sm" onClick={() => setSelectedCase(c)}>Details</Button>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="7" className="px-6 py-4 text-center text-gray-500">No recent cases</td>
+                {dashboardData.recentCases.length > 0 ? dashboardData.recentCases.map(c => (
+                  <tr key={c.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4">{c.patient_id}</td>
+                    <td className="px-6 py-4 text-gray-600">{c.fraud_type.replace(/_/g,' ')}</td>
+                    <td className="px-6 py-4">{(c.fraud_confidence*100).toFixed(1)}%</td>
+                    <td className="px-6 py-4">{formatCurrency(c.total_amount)}</td>
+                    <td className="px-6 py-4"><Badge className={getRiskBadgeColor(c.risk_level)}>{c.risk_level}</Badge></td>
+                    <td className="px-6 py-4">{new Date(c.created_at).toLocaleDateString()}</td>
+                    <td className="px-6 py-4 text-right">
+                      <Button variant="outline" size="sm" onClick={() => openCaseModal(c)}>Details</Button>
+                    </td>
                   </tr>
-                )}
+                )) : <tr><td colSpan="7" className="px-6 py-4 text-center text-gray-500">No recent cases</td></tr>}
               </tbody>
             </table>
           </div>
         </CardContent>
       </Card>
+
+      {/* Case Details Modal */}
+      {selectedCase && (
+        <Dialog open={modalOpen} onOpenChange={closeModal}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Case Details: {selectedCase.patient_id}</DialogTitle>
+              <DialogDescription>Detailed information about this fraud case.</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div><strong>Fraud Type:</strong> {selectedCase.fraud_type.replace(/_/g,' ')}</div>
+                <div><strong>Confidence:</strong> {(selectedCase.fraud_confidence*100).toFixed(1)}%</div>
+                <div><strong>Amount:</strong> {formatCurrency(selectedCase.total_amount)}</div>
+                <div><strong>Risk Level:</strong> <Badge className={getRiskBadgeColor(selectedCase.risk_level)}>{selectedCase.risk_level}</Badge></div>
+                <div><strong>Date:</strong> {new Date(selectedCase.created_at).toLocaleDateString()}</div>
+              </div>
+              <ul className="space-y-2 text-gray-700">
+                {selectedCase.procedure_count && <li><XCircle className="inline h-4 w-4 mr-1 text-red-500"/>Procedures: {selectedCase.procedure_count}</li>}
+                {selectedCase.hospital_count && <li><MapPin className="inline h-4 w-4 mr-1 text-orange-500"/>Hospitals Involved: {selectedCase.hospital_count}</li>}
+              </ul>
+              <div className="flex justify-end pt-2">
+                <Button onClick={closeModal} variant="outline">Close</Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   )
 }
 
+// ChartCard Component
 const ChartCard = ({ title, description, type, data }) => {
   const chartProps = {
     line: (
@@ -294,9 +289,7 @@ const ChartCard = ({ title, description, type, data }) => {
     pie: (
       <PieChart>
         <Pie data={data} dataKey="count" nameKey="type" cx="50%" cy="50%" outerRadius={100} label>
-          {data.map((entry, index) => (
-            <Cell key={index} fill={COLORS[index % COLORS.length]} />
-          ))}
+          {data.map((entry, index) => <Cell key={index} fill={COLORS[index % COLORS.length]} />)}
         </Pie>
         <Tooltip />
       </PieChart>
@@ -320,6 +313,7 @@ const ChartCard = ({ title, description, type, data }) => {
       </AreaChart>
     )
   }
+
   return (
     <Card className="rounded-2xl border border-gray-100 shadow-sm">
       <CardHeader>

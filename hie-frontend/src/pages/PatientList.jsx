@@ -29,6 +29,8 @@ import {
   Download,
   RefreshCw
 } from 'lucide-react'
+import AddPatient from './AddPatients'
+import API_BASE_URL from '../../api_url'
 
 export default function PatientList() {
   const { user } = useAuth()
@@ -38,6 +40,7 @@ export default function PatientList() {
   const [genderFilter, setGenderFilter] = useState('all')
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
 
   useEffect(() => {
     loadPatients()
@@ -46,90 +49,16 @@ export default function PatientList() {
   const loadPatients = async () => {
     setLoading(true)
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      // Mock patient data with Kenyan context
-      const mockPatients = [
-        {
-          id: '1',
-          nhifId: 'NHIF-12345',
-          firstName: 'Grace',
-          lastName: 'Muthoni',
-          dateOfBirth: '1985-03-15',
-          gender: 'female',
-          phone: '+254712345678',
-          email: 'grace.muthoni@email.com',
-          lastVisit: '2024-07-18T10:30:00Z',
-          status: 'active'
-        },
-        {
-          id: '2',
-          nhifId: 'NHIF-67890',
-          firstName: 'Peter',
-          lastName: 'Ochieng',
-          dateOfBirth: '1978-11-22',
-          gender: 'male',
-          phone: '+254723456789',
-          email: 'peter.ochieng@email.com',
-          lastVisit: '2024-07-17T14:15:00Z',
-          status: 'active'
-        },
-        {
-          id: '3',
-          nhifId: 'NHIF-11111',
-          firstName: 'Sarah',
-          lastName: 'Wanjiku',
-          dateOfBirth: '1992-07-08',
-          gender: 'female',
-          phone: '+254734567890',
-          email: 'sarah.wanjiku@email.com',
-          lastVisit: '2024-07-16T09:45:00Z',
-          status: 'active'
-        },
-        {
-          id: '4',
-          nhifId: 'NHIF-22222',
-          firstName: 'John',
-          lastName: 'Kamau',
-          dateOfBirth: '1965-12-03',
-          gender: 'male',
-          phone: '+254745678901',
-          email: 'john.kamau@email.com',
-          lastVisit: '2024-07-15T16:20:00Z',
-          status: 'active'
-        },
-        {
-          id: '5',
-          nhifId: 'NHIF-33333',
-          firstName: 'Mary',
-          lastName: 'Akinyi',
-          dateOfBirth: '1990-05-18',
-          gender: 'female',
-          phone: '+254756789012',
-          email: 'mary.akinyi@email.com',
-          lastVisit: '2024-07-14T11:10:00Z',
-          status: 'active'
+      const response = await fetch(`${API_BASE_URL}/patients/?page=${currentPage}&limit=10${searchTerm ? `&search=${searchTerm}` : ''}${genderFilter !== 'all' ? `&gender=${genderFilter}` : ''}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('hie_access_token')}`,
+          'ngrok-skip-browser-warning': 'true'
         }
-      ]
-
-      // Apply filters
-      let filteredPatients = mockPatients
-      
-      if (searchTerm) {
-        filteredPatients = filteredPatients.filter(patient =>
-          patient.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          patient.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          patient.nhifId.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-      }
-      
-      if (genderFilter !== 'all') {
-        filteredPatients = filteredPatients.filter(patient => patient.gender === genderFilter)
-      }
-
-      setPatients(filteredPatients)
-      setTotalPages(Math.ceil(filteredPatients.length / 10))
+      })
+      if (!response.ok) throw new Error('Failed to load patients')
+      const data = await response.json()
+      setPatients(data.patients || [])
+      setTotalPages(data.pagination?.pages || 1)
     } catch (error) {
       console.error('Error loading patients:', error)
     } finally {
@@ -161,6 +90,11 @@ export default function PatientList() {
     }
   }
 
+  const handlePatientAdded = () => {
+    setIsAddModalOpen(false)
+    loadPatients()
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -172,8 +106,8 @@ export default function PatientList() {
           </p>
         </div>
         <div className="flex items-center space-x-2">
-          {user?.role === 'doctor' && (
-            <Button>
+          {user?.role === 'admin' && (
+            <Button onClick={() => setIsAddModalOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
               Add Patient
             </Button>
@@ -184,6 +118,13 @@ export default function PatientList() {
           </Button>
         </div>
       </div>
+
+      {/* Add Patient Modal */}
+      <AddPatient
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onPatientAdded={handlePatientAdded}
+      />
 
       {/* Filters and Search */}
       <Card>
@@ -360,4 +301,3 @@ export default function PatientList() {
     </div>
   )
 }
-

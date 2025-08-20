@@ -7,6 +7,7 @@ import DoctorDashboard from './pages/DoctorDashboard'
 import NurseDashboard from './pages/NurseDashboard'
 import AdminDashboard from './pages/AdminDashboard'
 import PatientList from './pages/PatientList'
+import AddPatients from './pages/AddPatients'
 import PatientDetails from './pages/PatientDetails'
 import FraudAlerts from './pages/FraudAlerts'
 import EnhancedFraudDashboard from './pages/EnhancedFraudDashboard'
@@ -84,6 +85,8 @@ function App() {
                 </DashboardLayout>
               </ProtectedRoute>
             } />
+
+           
             
             <Route path="/patients/:id" element={
               <ProtectedRoute allowedRoles={['doctor', 'nurse', 'admin']}>

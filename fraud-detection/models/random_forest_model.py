@@ -35,79 +35,97 @@ class FraudDetectionRandomForest:
         
     def prepare_features(self, df):
         """
-        Prepare and engineer features for fraud detection
+        Prepare and engineer features for fraud detection, using existing features when available
         """
         features = df.copy()
         
-        # Temporal features
+        # Log input columns for debugging
+        self.logger.info(f"Input columns to prepare_features: {list(features.columns)}")
+        
+        # Temporal features (only add if not already present)
         if 'claim_date' in features.columns:
             features['claim_date'] = pd.to_datetime(features['claim_date'])
-            features['claim_hour'] = features['claim_date'].dt.hour
-            features['claim_day_of_week'] = features['claim_date'].dt.dayofweek
-            features['claim_month'] = features['claim_date'].dt.month
-            features['is_weekend'] = (features['claim_day_of_week'] >= 5).astype(int)
-            features['is_night_claim'] = ((features['claim_hour'] < 6) | (features['claim_hour'] > 22)).astype(int)
+            if 'claim_hour' not in features.columns:
+                features['claim_hour'] = features['claim_date'].dt.hour
+            if 'claim_day_of_week' not in features.columns:
+                features['claim_day_of_week'] = features['claim_date'].dt.dayofweek
+            if 'claim_month' not in features.columns:
+                features['claim_month'] = features['claim_date'].dt.month
+            if 'is_weekend' not in features.columns:
+                features['is_weekend'] = (features['claim_day_of_week'] >= 5).astype(int)
+            if 'is_night_claim' not in features.columns:
+                features['is_night_claim'] = ((features['claim_hour'] < 6) | (features['claim_hour'] > 22)).astype(int)
         
-        # Financial features
+        # Financial features (only add if not already present)
         if 'claim_amount' in features.columns:
-            features['claim_amount_log'] = np.log1p(features['claim_amount'])
-            features['is_high_amount'] = (features['claim_amount'] > features['claim_amount'].quantile(0.95)).astype(int)
+            if 'claim_amount_log' not in features.columns:
+                features['claim_amount_log'] = np.log1p(features['claim_amount'])
+            if 'is_high_amount' not in features.columns:
+                features['is_high_amount'] = (features['claim_amount'] > features['claim_amount'].quantile(0.95)).astype(int)
         
-        # Provider features
+        # Provider features (use existing features if available, otherwise compute)
         if 'provider_id' in features.columns:
-            provider_stats = features.groupby('provider_id').agg({
-                'claim_amount': ['count', 'mean', 'std', 'sum'],
-                'patient_id': 'nunique'
-            }).fillna(0)
+            if 'provider_claim_count' not in features.columns or 'provider_unique_patients' not in features.columns:
+                provider_stats = features.groupby('provider_id').agg({
+                    'claim_amount': ['count', 'mean', 'std', 'sum'],
+                    'patient_id': 'nunique'
+                }).fillna(0)
+                
+                provider_stats.columns = ['provider_claim_count', 'provider_avg_amount', 
+                                        'provider_amount_std', 'provider_total_amount', 
+                                        'provider_unique_patients']
+                
+                features = features.merge(provider_stats, left_on='provider_id', right_index=True, how='left')
             
-            provider_stats.columns = ['provider_claim_count', 'provider_avg_amount', 
-                                    'provider_amount_std', 'provider_total_amount', 
-                                    'provider_unique_patients']
-            
-            features = features.merge(provider_stats, left_on='provider_id', right_index=True, how='left')
-            
-            # Provider risk indicators
-            features['provider_claims_per_patient'] = features['provider_claim_count'] / (features['provider_unique_patients'] + 1)
-            features['provider_amount_variation'] = features['provider_amount_std'] / (features['provider_avg_amount'] + 1)
+            # Provider risk indicators (only compute if not already present)
+            if 'provider_claims_per_patient' not in features.columns:
+                features['provider_claims_per_patient'] = features['provider_claim_count'] / (features['provider_unique_patients'] + 1)
+            if 'provider_amount_variation' not in features.columns:
+                features['provider_amount_variation'] = features['provider_amount_std'] / (features['provider_avg_amount'] + 1)
         
-        # Patient features
+        # Patient features (use existing features if available, otherwise compute)
         if 'patient_id' in features.columns:
-            patient_stats = features.groupby('patient_id').agg({
-                'claim_amount': ['count', 'mean', 'sum'],
-                'provider_id': 'nunique'
-            }).fillna(0)
-            
-            patient_stats.columns = ['patient_claim_count', 'patient_avg_amount', 
-                                   'patient_total_amount', 'patient_unique_providers']
-            
-            features = features.merge(patient_stats, left_on='patient_id', right_index=True, how='left')
+            if 'patient_claim_count' not in features.columns or 'patient_unique_providers' not in features.columns:
+                patient_stats = features.groupby('patient_id').agg({
+                    'claim_amount': ['count', 'mean', 'sum'],
+                    'provider_id': 'nunique'
+                }).fillna(0)
+                
+                patient_stats.columns = ['patient_claim_count', 'patient_avg_amount', 
+                                       'patient_total_amount', 'patient_unique_providers']
+                
+                features = features.merge(patient_stats, left_on='patient_id', right_index=True, how='left')
             
             # Patient risk indicators
-            features['patient_provider_diversity'] = features['patient_unique_providers'] / (features['patient_claim_count'] + 1)
+            if 'patient_provider_diversity' not in features.columns:
+                features['patient_provider_diversity'] = features['patient_unique_providers'] / (features['patient_claim_count'] + 1)
         
         # Diagnosis and procedure features
         if 'diagnosis_code' in features.columns:
             # High-risk diagnosis codes (example patterns)
             high_risk_diagnoses = ['Z51', 'M79', 'R06', 'G89']  # Common in fraudulent claims
-            features['is_high_risk_diagnosis'] = features['diagnosis_code'].str[:3].isin(high_risk_diagnoses).astype(int)
+            if 'is_high_risk_diagnosis' not in features.columns:
+                features['is_high_risk_diagnosis'] = features['diagnosis_code'].str[:3].isin(high_risk_diagnoses).astype(int)
         
         if 'procedure_code' in features.columns:
             # High-value procedure codes
             high_value_procedures = ['99213', '99214', '99215', '93000']  # Common high-value procedures
-            features['is_high_value_procedure'] = features['procedure_code'].isin(high_value_procedures).astype(int)
+            if 'is_high_value_procedure' not in features.columns:
+                features['is_high_value_procedure'] = features['procedure_code'].isin(high_value_procedures).astype(int)
         
         # Geographic features
         if 'provider_location' in features.columns and 'patient_location' in features.columns:
-            # Distance between provider and patient (simplified)
-            features['location_mismatch'] = (features['provider_location'] != features['patient_location']).astype(int)
+            if 'location_mismatch' not in features.columns:
+                features['location_mismatch'] = (features['provider_location'] != features['patient_location']).astype(int)
         
         # Duplicate detection features
         duplicate_cols = ['patient_id', 'provider_id', 'diagnosis_code', 'procedure_code']
         available_cols = [col for col in duplicate_cols if col in features.columns]
         
-        if len(available_cols) >= 2:
+        if len(available_cols) >= 2 and 'duplicate_claim_indicator' not in features.columns:
             features['duplicate_claim_indicator'] = features.duplicated(subset=available_cols, keep=False).astype(int)
         
+        self.logger.info(f"Output columns from prepare_features: {list(features.columns)}")
         return features
     
     def encode_categorical_features(self, df, fit=True):
@@ -328,4 +346,3 @@ class FraudDetectionRandomForest:
                         f"Recall: {self.performance_metrics['recall']:.4f}")
         
         return self.performance_metrics
-

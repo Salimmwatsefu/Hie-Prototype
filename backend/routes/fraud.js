@@ -144,6 +144,10 @@ router.get("/alerts", requireRole(["doctor", "admin"]), auditLog("VIEW_FRAUD_ALE
       reviewNotes: alert.review_notes
     }));
 
+    res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+res.set("Pragma", "no-cache");
+res.set("Expires", "0");
+
     res.json({
       fraudAlerts,
       pagination: {
@@ -288,7 +292,7 @@ router.post("/alerts", [
   body("riskLevel").isIn(["low", "medium", "high"]),
   body("flags").isObject(),
   body("modelVersion").optional().trim()
-], requireRole(["admin"]), auditLog("CREATE_FRAUD_ALERT", "FRAUD"), async (req, res) => {
+], requireRole(["admin", "doctor"]), auditLog("CREATE_FRAUD_ALERT", "FRAUD"), async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {

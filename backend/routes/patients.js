@@ -29,22 +29,6 @@ router.get('/', requireRole(['doctor', 'nurse', 'admin']), auditLog('VIEW_PATIEN
       params.push(`%${search}%`);
     }
 
-    // Add hospital filter for non-admin users
-    if (req.user.role !== 'admin' && req.user.hospital_id) {
-      paramCount++;
-      query += ` AND EXISTS (
-        SELECT 1 FROM medical_records mr 
-        WHERE mr.patient_id = p.id AND mr.hospital_id = $${paramCount}
-      )`;
-      params.push(req.user.hospital_id);
-    } else if (hospital) {
-      paramCount++;
-      query += ` AND EXISTS (
-        SELECT 1 FROM medical_records mr 
-        WHERE mr.patient_id = p.id AND mr.hospital_id = $${paramCount}
-      )`;
-      params.push(hospital);
-    }
 
     query += ` ORDER BY p.created_at DESC LIMIT $${paramCount + 1} OFFSET $${paramCount + 2}`;
     params.push(limit, offset);
@@ -143,7 +127,7 @@ router.get('/:id', [
 });
 
 // Create new patient
-router.post('/', [
+router.post('/patient', [
   body('nhifId').notEmpty().trim(),
   body('firstName').notEmpty().trim(),
   body('lastName').notEmpty().trim(),
@@ -217,7 +201,7 @@ router.post('/', [
 });
 
 // Update patient
-router.put('/:id', [
+router.put('/patient/:id', [
   param('id').isUUID(),
   body('firstName').optional().notEmpty().trim(),
   body('lastName').optional().notEmpty().trim(),

@@ -31,145 +31,47 @@ export default function AddPatient({ isOpen, onClose, onPatientAdded }) {
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
 
-  // Mock previous procedures for simulation (keyed by nhifId)
   const mockPreviousProcedures = {
-  'NHIF-22222': [
-    {
-      procedure: 'Right kidney removal',
-      procedure_code: 'SUR101',
-      hospital: 'Nairobi Hospital',
-      hospital_id: 'NAI_001',
-      date: '2025-08-01',
-      amount: 32000,
-      insurance_provider: 'SHA',
-      patient_name: 'Alice Wambui'
-    },
-    {
-      procedure: 'Right kidney removal',
-      procedure_code: 'SUR101',
-      hospital: 'Aga Khan University Hospital',
-      hospital_id: 'AGA_001',
-      date: '2025-08-03',
-      amount: 33000,
-      insurance_provider: 'SHA',
-      patient_name: 'Alice W.'
-    },
-    {
-      procedure: 'Heart valve replacement',
-      procedure_code: 'CAR101',
-      hospital: 'MP Shah Hospital',
-      hospital_id: 'MPS_001',
-      date: '2025-08-10',
-      amount: 45000,
-      insurance_provider: 'SHA',
-      patient_name: 'Alice Wambui'
-    }
-  ],
-  'NHIF-33333': [
-    {
-      procedure: 'Left eye cataract surgery',
-      procedure_code: 'EYE101',
-      hospital: 'Kenyatta National Hospital',
-      hospital_id: 'KNH_001',
-      date: '2025-07-20',
-      amount: 15000,
-      insurance_provider: 'SHA',
-      patient_name: 'James Kariuki'
-    },
-    {
-      procedure: 'Left eye cataract surgery',
-      procedure_code: 'EYE101',
-      hospital: 'Mater Hospital',
-      hospital_id: 'MAT_001',
-      date: '2025-07-22',
-      amount: 15500,
-      insurance_provider: 'SHA',
-      patient_name: 'James K.'
-    },
-    {
-      procedure: 'Right eye cataract surgery',
-      procedure_code: 'EYE102',
-      hospital: 'Karen Hospital',
-      hospital_id: 'KAR_001',
-      date: '2025-07-25',
-      amount: 16000,
-      insurance_provider: 'SHA',
-      patient_name: 'James Kariuki'
-    }
-  ],
-  'NHIF-55555': [
-    {
-      procedure: 'Hip replacement surgery',
-      procedure_code: 'ORT101',
-      hospital: 'Moi Teaching and Referral Hospital',
-      hospital_id: 'MOI_001',
-      date: '2025-08-05',
-      amount: 28000,
-      insurance_provider: 'SHA',
-      patient_name: 'Bella Njeri'
-    },
-    {
-      procedure: 'Hip replacement surgery',
-      procedure_code: 'ORT101',
-      hospital: 'Nairobi Hospital',
-      hospital_id: 'NAI_001',
-      date: '2025-08-07',
-      amount: 29000,
-      insurance_provider: 'SHA',
-      patient_name: 'Bella N.'
-    },
-    {
-      procedure: 'Knee arthroscopy',
-      procedure_code: 'ORT102',
-      hospital: 'MP Shah Hospital',
-      hospital_id: 'MPS_001',
-      date: '2025-08-10',
-      amount: 12000,
-      insurance_provider: 'SHA',
-      patient_name: ' Bella Njeri'
-    },
-    {
-      procedure: 'Knee arthroscopy',
-      procedure_code: 'ORT102',
-      hospital: 'Karen Hospital',
-      hospital_id: 'KAR_001',
-      date: '2025-08-12',
-      amount: 12500,
-      insurance_provider: 'SHA',
-      patient_name: ' Bella N.'
-    }
-  ],
-  'NHIF-55666': []
-}
-
-
-  const loadSampleData = () => {
-    setFormData({
-      nhifId: 'NHIF-55555',
-      firstName: 'Bella',
-      lastName: 'Njeri',
-      dateOfBirth: '1995-07-16',
-      gender: 'female',
-      phone: '0728277779',
-      email: 'alice@gmail.com',
-      address: 'Roysambu, Nairobi',
-      emergencyContactName: 'Onyango Otieno',
-      emergencyContactPhone: '0739876663',
-      emergencyContactRelationship: 'Sister',
-      medicalHistory: [
-        { condition: 'Hypertension', diagnosisDate: '2021-03-15' },
-        { condition: 'Asthma', diagnosisDate: '2019-07-22' }
-      ],
-      allergies: ['Peanuts', 'Latex'],
-      currentMedications: [
-        { name: 'Amlodipine', dosage: '5mg', frequency: 'Daily' },
-        { name: 'Ventolin', dosage: '2 puffs', frequency: 'As needed' }
-      ],
-      insuranceProvider: 'SHA',
-      insurancePolicyNumber: 'POL456788'
-    })
+    'NHIF-90001': [
+      { procedure: 'Appendectomy', procedure_code: 'SUR201', hospital: 'Nairobi Hospital', hospital_id: 'NAI_001', date: '2025-08-01', amount: 25000, insurance_provider: 'SHA', patient_name: 'Miriam Otieno' },
+      { procedure: 'Appendectomy', procedure_code: 'SUR201', hospital: 'Aga Khan University Hospital', hospital_id: 'AGA_001', date: '2025-08-03', amount: 26000, insurance_provider: 'SHA', patient_name: 'Miriam O.' },
+      { procedure: 'Gallbladder Checkup', procedure_code: 'SUR202', hospital: 'MP Shah Hospital', hospital_id: 'MPS_001', date: '2025-08-05', amount: 15000, insurance_provider: 'SHA', patient_name: 'Miriam Otieno' }
+    ],
+    'NHIF-90002': [
+      { procedure: 'Tonsillectomy', procedure_code: 'ENT101', hospital: 'MP Shah Hospital', hospital_id: 'MPS_001', date: '2025-07-15', amount: 12000, insurance_provider: 'NHIF', patient_name: 'Daniel Mwangi' },
+      { procedure: 'Tonsil Checkup', procedure_code: 'ENT102', hospital: 'Karen Hospital', hospital_id: 'KAR_001', date: '2025-07-18', amount: 8000, insurance_provider: 'NHIF', patient_name: 'Daniel M.' },
+      { procedure: 'Sinus Surgery', procedure_code: 'ENT103', hospital: 'Nairobi Hospital', hospital_id: 'NAI_001', date: '2025-07-20', amount: 18000, insurance_provider: 'NHIF', patient_name: 'Daniel Mwangi' }
+    ],
+    'NHIF-90003': [
+      { procedure: 'Gallbladder Removal', procedure_code: 'SUR301', hospital: 'Karen Hospital', hospital_id: 'KAR_001', date: '2025-06-20', amount: 35000, insurance_provider: 'AAR', patient_name: 'Faith Kamau' },
+      { procedure: 'Gallbladder Removal', procedure_code: 'SUR301', hospital: 'Mater Hospital', hospital_id: 'MAT_001', date: '2025-06-22', amount: 36000, insurance_provider: 'AAR', patient_name: 'Faith K.' },
+      { procedure: 'Liver Scan', procedure_code: 'SUR302', hospital: 'MP Shah Hospital', hospital_id: 'MPS_001', date: '2025-06-25', amount: 10000, insurance_provider: 'AAR', patient_name: 'Faith Kamau' }
+    ],
+    'NHIF-90004': [
+      { procedure: 'Knee Replacement', procedure_code: 'ORT201', hospital: 'Moi Teaching and Referral Hospital', hospital_id: 'MOI_001', date: '2025-05-10', amount: 40000, insurance_provider: 'NHIF', patient_name: 'Kevin Omondi' },
+      { procedure: 'Knee X-Ray', procedure_code: 'ORT202', hospital: 'Karen Hospital', hospital_id: 'KAR_001', date: '2025-05-12', amount: 12000, insurance_provider: 'NHIF', patient_name: 'Kevin O.' },
+      { procedure: 'Physical Therapy', procedure_code: 'ORT203', hospital: 'MP Shah Hospital', hospital_id: 'MPS_001', date: '2025-05-15', amount: 8000, insurance_provider: 'NHIF', patient_name: 'Kevin Omondi' }
+    ],
+    'NHIF-90005': [
+      { procedure: 'Hip Replacement', procedure_code: 'ORT301', hospital: 'Nairobi Hospital', hospital_id: 'NAI_001', date: '2025-04-12', amount: 42000, insurance_provider: 'APA', patient_name: 'Linda Wanjiku' },
+      { procedure: 'Hip Replacement', procedure_code: 'ORT301', hospital: 'Karen Hospital', hospital_id: 'KAR_001', date: '2025-04-15', amount: 43000, insurance_provider: 'APA', patient_name: 'Linda W.' },
+      { procedure: 'Post-Op Checkup', procedure_code: 'ORT302', hospital: 'MP Shah Hospital', hospital_id: 'MPS_001', date: '2025-04-18', amount: 10000, insurance_provider: 'APA', patient_name: 'Linda Wanjiku' }
+    ]
   }
 
+  const samplePatients = [
+    { nhifId: 'NHIF-90001', firstName: 'Miriam', lastName: 'Otieno', dateOfBirth: '1990-01-15', gender: 'female', phone: '0723456789', email: 'miriam@example.com', address: 'Westlands, Nairobi', emergencyContactName: 'James Otieno', emergencyContactPhone: '0712345678', emergencyContactRelationship: 'Brother', medicalHistory: [{ condition: 'Diabetes', diagnosisDate: '2018-03-12' }], allergies: ['Penicillin'], currentMedications: [{ name: 'Metformin', dosage: '500mg', frequency: 'Daily' }], insuranceProvider: 'SHA', insurancePolicyNumber: 'POL90001' },
+    { nhifId: 'NHIF-90002', firstName: 'Daniel', lastName: 'Mwangi', dateOfBirth: '1985-07-20', gender: 'male', phone: '0734567890', email: 'daniel@example.com', address: 'Kilimani, Nairobi', emergencyContactName: 'Grace Mwangi', emergencyContactPhone: '0723456789', emergencyContactRelationship: 'Wife', medicalHistory: [{ condition: 'Asthma', diagnosisDate: '2015-05-10' }], allergies: ['Dust'], currentMedications: [{ name: 'Ventolin', dosage: '2 puffs', frequency: 'As needed' }], insuranceProvider: 'NHIF', insurancePolicyNumber: 'POL90002' },
+    { nhifId: 'NHIF-90003', firstName: 'Faith', lastName: 'Kamau', dateOfBirth: '1992-03-25', gender: 'female', phone: '0745678901', email: 'faith@example.com', address: 'Karen, Nairobi', emergencyContactName: 'John Kamau', emergencyContactPhone: '0734567890', emergencyContactRelationship: 'Husband', medicalHistory: [{ condition: 'Hypertension', diagnosisDate: '2017-09-12' }], allergies: ['Peanuts'], currentMedications: [{ name: 'Amlodipine', dosage: '5mg', frequency: 'Daily' }], insuranceProvider: 'AAR', insurancePolicyNumber: 'POL90003' },
+    { nhifId: 'NHIF-90004', firstName: 'Kevin', lastName: 'Omondi', dateOfBirth: '1988-11-05', gender: 'male', phone: '0712345678', email: 'kevin@example.com', address: 'Roysambu, Nairobi', emergencyContactName: 'Alice Omondi', emergencyContactPhone: '0723456789', emergencyContactRelationship: 'Sister', medicalHistory: [{ condition: 'Arthritis', diagnosisDate: '2019-02-20' }], allergies: ['Latex'], currentMedications: [{ name: 'Ibuprofen', dosage: '400mg', frequency: 'Daily' }], insuranceProvider: 'NHIF', insurancePolicyNumber: 'POL90004' },
+    { nhifId: 'NHIF-90005', firstName: 'Linda', lastName: 'Wanjiku', dateOfBirth: '1995-06-15', gender: 'female', phone: '0723456789', email: 'linda@example.com', address: 'Langata, Nairobi', emergencyContactName: 'Peter Wanjiku', emergencyContactPhone: '0712345678', emergencyContactRelationship: 'Brother', medicalHistory: [{ condition: 'Migraine', diagnosisDate: '2020-01-10' }], allergies: ['Shellfish'], currentMedications: [{ name: 'Sumatriptan', dosage: '50mg', frequency: 'As needed' }], insuranceProvider: 'APA', insurancePolicyNumber: 'POL90005' }
+  ]
+
+  const loadSampleData = (index) => {
+    if (samplePatients[index]) setFormData(samplePatients[index])
+  }
+
+  // -------------------- HANDLERS --------------------
   const handleChange = (e) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
@@ -181,261 +83,98 @@ export default function AddPatient({ isOpen, onClose, onPatientAdded }) {
     setFormData(prev => ({ ...prev, medicalHistory: newMedicalHistory }))
   }
 
-  const addMedicalHistory = () => {
-    setFormData(prev => ({
-      ...prev,
-      medicalHistory: [...prev.medicalHistory, { condition: '', diagnosisDate: '' }]
-    }))
-  }
+  const addMedicalHistory = () => setFormData(prev => ({ ...prev, medicalHistory: [...prev.medicalHistory, { condition: '', diagnosisDate: '' }] }))
+  const removeMedicalHistory = (index) => setFormData(prev => ({ ...prev, medicalHistory: prev.medicalHistory.filter((_, i) => i !== index) }))
 
-  const removeMedicalHistory = (index) => {
-    setFormData(prev => ({
-      ...prev,
-      medicalHistory: prev.medicalHistory.filter((_, i) => i !== index)
-    }))
-  }
+  const updateAllergy = (index, value) => { const newAllergies = [...formData.allergies]; newAllergies[index] = value; setFormData(prev => ({ ...prev, allergies: newAllergies })) }
+  const addAllergy = () => setFormData(prev => ({ ...prev, allergies: [...prev.allergies, ''] }))
+  const removeAllergy = (index) => setFormData(prev => ({ ...prev, allergies: prev.allergies.filter((_, i) => i !== index) }))
 
-  const updateAllergy = (index, value) => {
-    const newAllergies = [...formData.allergies]
-    newAllergies[index] = value
-    setFormData(prev => ({ ...prev, allergies: newAllergies }))
-  }
-
-  const addAllergy = () => {
-    setFormData(prev => ({ ...prev, allergies: [...prev.allergies, ''] }))
-  }
-
-  const removeAllergy = (index) => {
-    setFormData(prev => ({
-      ...prev,
-      allergies: prev.allergies.filter((_, i) => i !== index)
-    }))
-  }
-
-  const updateMedication = (index, field, value) => {
-    const newMedications = [...formData.currentMedications]
-    newMedications[index] = { ...newMedications[index], [field]: value }
-    setFormData(prev => ({ ...prev, currentMedications: newMedications }))
-  }
-
-  const addMedication = () => {
-    setFormData(prev => ({
-      ...prev,
-      currentMedications: [...prev.currentMedications, { name: '', dosage: '', frequency: '' }]
-    }))
-  }
-
-  const removeMedication = (index) => {
-    setFormData(prev => ({
-      ...prev,
-      currentMedications: prev.currentMedications.filter((_, i) => i !== index)
-    }))
-  }
+  const updateMedication = (index, field, value) => { const newMedications = [...formData.currentMedications]; newMedications[index] = { ...newMedications[index], [field]: value }; setFormData(prev => ({ ...prev, currentMedications: newMedications })) }
+  const addMedication = () => setFormData(prev => ({ ...prev, currentMedications: [...prev.currentMedications, { name: '', dosage: '', frequency: '' }] }))
+  const removeMedication = (index) => setFormData(prev => ({ ...prev, currentMedications: prev.currentMedications.filter((_, i) => i !== index) }))
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    setLoading(true)
-    setError(null)
+    setLoading(true); setError(null)
 
-    // Validate required fields
-    if (!formData.nhifId.match(/^NHIF-\d+$/)) {
-      setError('NHIF ID must follow format NHIF- followed by numbers')
-      setLoading(false)
-      return
-    }
-    if (!formData.firstName || !formData.lastName || !formData.dateOfBirth || !formData.gender) {
-      setError('All required fields must be filled')
-      setLoading(false)
-      return
-    }
+    if (!formData.nhifId.match(/^NHIF-\d+$/)) { setError('NHIF ID must follow format NHIF- followed by numbers'); setLoading(false); return }
+    if (!formData.firstName || !formData.lastName || !formData.dateOfBirth || !formData.gender) { setError('All required fields must be filled'); setLoading(false); return }
 
-    // Validate token
     const token = localStorage.getItem('hie_access_token')
-    if (!token) {
-      setError('Authentication token missing')
-      setLoading(false)
-      return
-    }
+    if (!token) { setError('Authentication token missing'); setLoading(false); return }
 
     try {
-      // Construct structured fields
-      const emergencyContact = {
-        name: formData.emergencyContactName,
-        phone: formData.emergencyContactPhone,
-        relationship: formData.emergencyContactRelationship
-      }
-      const insuranceInfo = {
-        provider: formData.insuranceProvider,
-        policyNumber: formData.insurancePolicyNumber
-      }
-      // Convert medicalHistory array to object
-      const medicalHistoryObj = formData.medicalHistory
-        .filter(item => item.condition || item.diagnosisDate)
-        .reduce((acc, item, index) => ({
-          ...acc,
-          [`condition${index + 1}`]: item
-        }), {})
-      // Convert currentMedications array to object
-      const currentMedicationsObj = formData.currentMedications
-        .filter(item => item.name || item.dosage || item.frequency)
-        .reduce((acc, item, index) => ({
-          ...acc,
-          [`med${index + 1}`]: item
-        }), {})
+      const emergencyContact = { name: formData.emergencyContactName, phone: formData.emergencyContactPhone, relationship: formData.emergencyContactRelationship }
+      const insuranceInfo = { provider: formData.insuranceProvider, policyNumber: formData.insurancePolicyNumber }
+      const medicalHistoryObj = formData.medicalHistory.filter(item => item.condition || item.diagnosisDate).reduce((acc, item, index) => ({ ...acc, [`condition${index+1}`]: item }), {})
+      const currentMedicationsObj = formData.currentMedications.filter(item => item.name || item.dosage || item.frequency).reduce((acc, item, index) => ({ ...acc, [`med${index+1}`]: item }), {})
 
       const submitData = {
-        nhifId: formData.nhifId,
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        dateOfBirth: formData.dateOfBirth,
-        gender: formData.gender,
-        phone: formData.phone,
-        email: formData.email,
-        address: formData.address,
-        emergencyContact: Object.keys(emergencyContact).length > 0 ? emergencyContact : undefined,
-        medicalHistory: Object.keys(medicalHistoryObj).length > 0 ? medicalHistoryObj : undefined,
-        allergies: formData.allergies.filter(allergy => allergy).length > 0 ? formData.allergies.filter(allergy => allergy) : undefined,
-        currentMedications: Object.keys(currentMedicationsObj).length > 0 ? currentMedicationsObj : undefined,
-        insuranceInfo: Object.keys(insuranceInfo).length > 0 ? insuranceInfo : undefined
+        nhifId: formData.nhifId, firstName: formData.firstName, lastName: formData.lastName,
+        dateOfBirth: formData.dateOfBirth, gender: formData.gender, phone: formData.phone, email: formData.email, address: formData.address,
+        emergencyContact: Object.keys(emergencyContact).length>0?emergencyContact:undefined,
+        medicalHistory: Object.keys(medicalHistoryObj).length>0?medicalHistoryObj:undefined,
+        allergies: formData.allergies.filter(a=>a).length>0?formData.allergies.filter(a=>a):undefined,
+        currentMedications: Object.keys(currentMedicationsObj).length>0?currentMedicationsObj:undefined,
+        insurance: Object.keys(insuranceInfo).length>0?insuranceInfo:undefined
       }
 
-      const response = await fetch(`${API_BASE_URL}/patients/patient`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-          'ngrok-skip-browser-warning': 'true'
-        },
-        body: JSON.stringify(submitData)
-      })
-
-      if (!response.ok) {
-        const errData = await response.json()
-        console.error('Server error:', errData)
-        throw new Error(errData.error || 'Failed to create patient')
-      }
-
-      const patientData = await response.json()
-      const { patient } = patientData
-
-      // Trigger fraud analysis asynchronously
-      await triggerFraudAnalysis(patient.nhifId, patient.id)
-
-      // Reset form, close modal, and notify parent
-      setFormData({
-        nhifId: '',
-        firstName: '',
-        lastName: '',
-        dateOfBirth: '',
-        gender: '',
-        phone: '',
-        email: '',
-        address: '',
-        emergencyContactName: '',
-        emergencyContactPhone: '',
-        emergencyContactRelationship: '',
-        medicalHistory: [{ condition: '', diagnosisDate: '' }],
-        allergies: [''],
-        currentMedications: [{ name: '', dosage: '', frequency: '' }],
-        insuranceProvider: '',
-        insurancePolicyNumber: ''
-      })
-      onPatientAdded()
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setLoading(false)
-    }
+      const res = await fetch(`${API_BASE_URL}/patients/patient`, { method:'POST', headers:{ 'Content-Type':'application/json', 'Authorization':`Bearer ${token}` }, body:JSON.stringify(submitData) })
+      if (!res.ok) throw new Error('Failed to create patient')
+      const newPatient = await res.json()
+      triggerFraudAnalysis(newPatient.nhifId)
+      onPatientAdded(newPatient); onClose(); setFormData({ nhifId:'', firstName:'', lastName:'', dateOfBirth:'', gender:'', phone:'', email:'', address:'', emergencyContactName:'', emergencyContactPhone:'', emergencyContactRelationship:'', medicalHistory:[{ condition:'', diagnosisDate:'' }], allergies:[''], currentMedications:[{ name:'', dosage:'', frequency:'' }], insuranceProvider:'', insurancePolicyNumber:'' })
+    } catch(err){ setError(err.message) } finally{ setLoading(false) }
   }
 
 const triggerFraudAnalysis = async (nhifId, patientId) => {
-  try {
-    const procedures = mockPreviousProcedures[nhifId] || []
-    console.log('[Fraud Analysis] Procedures:', procedures)
+    try {
+      const procedures = mockPreviousProcedures[nhifId] || []
 
-    // Call fraud analysis API
-    const fraudResponse = await fetch(`${API_BASE_URL}/enhanced-fraud/analyze-procedures`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('hie_access_token')}`,
-        'ngrok-skip-browser-warning': 'true'
-      },
-      body: JSON.stringify({
-        patient_id: nhifId,
-        procedures
+      const fraudResponse = await fetch(`${API_BASE_URL}/enhanced-fraud/analyze-procedures`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('hie_access_token')}`,
+          'ngrok-skip-browser-warning': 'true'
+        },
+        body: JSON.stringify({ patient_id: nhifId, procedures })
       })
-    })
 
-    if (!fraudResponse.ok) {
-      const errText = await fraudResponse.text()
-      console.error('[Fraud Analysis] Failed:', errText)
-      throw new Error('Fraud analysis failed')
-    }
+      if (!fraudResponse.ok) throw new Error('Fraud analysis failed')
 
-    const result = await fraudResponse.json()
-    console.log('[Fraud Analysis] Result:', result)
+      const result = await fraudResponse.json()
+      console.log('Fraud Analysis Result:', result)
 
-    const riskUpper = result.risk_level.toUpperCase()
-    console.log('[Fraud Analysis] Risk Level:', riskUpper)
+      // Map risk level
+      const riskLevelForAlert = ['LOW','low','Low'].includes(result.risk_level) ? 'low'
+        : ['MEDIUM','medium','Medium'].includes(result.risk_level) ? 'medium' : 'high'
 
-    // Map risk level to what the alerts API accepts
-    let riskLevelForAlert
-    switch (riskUpper) {
-      case 'LOW':
-        riskLevelForAlert = 'low'
-        break
-      case 'MEDIUM':
-        riskLevelForAlert = 'medium'
-        break
-      case 'HIGH':
-      case 'CRITICAL': // map CRITICAL to HIGH
-        riskLevelForAlert = 'high'
-        break
-      default:
-        riskLevelForAlert = 'low'
-    }
+      const flags = result.violations.reduce((acc,v)=> { acc[v.type]=v.description; return acc }, {})
 
-    // Convert violations to flags
-    const flags = result.violations.reduce((acc, v) => {
-      acc[v.type] = v.description
-      return acc
-    }, {})
-
-    console.log('[Fraud Alert] Sending alert with riskLevel:', riskLevelForAlert)
-
-    // Send fraud alert
-    const alertResponse = await fetch(`${API_BASE_URL}/fraud/alerts`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('hie_access_token')}`,
-        'ngrok-skip-browser-warning': 'true'
-      },
-      body: JSON.stringify({
-        patientId,
-        claimId: null,
-        hospitalId: user.hospital_id || 'DEFAULT_HOSPITAL',
-        fraudScore: result.fraud_score,
-        riskLevel: riskLevelForAlert,
-        flags,
-        modelVersion: 'v1.0'
+      // Send alert
+      await fetch(`${API_BASE_URL}/fraud/alerts`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('hie_access_token')}`,
+          'ngrok-skip-browser-warning': 'true'
+        },
+        body: JSON.stringify({
+          patientId,
+          claimId: null,
+          hospitalId: user.hospital_id || 'DEFAULT_HOSPITAL',
+          fraudScore: result.fraud_score,
+          riskLevel: riskLevelForAlert,
+          flags,
+          modelVersion: 'v1.0'
+        })
       })
-    })
-
-    if (!alertResponse.ok) {
-      const errText = await alertResponse.text()
-      console.error('[Fraud Alert] Failed:', errText)
-    } else {
-      console.log('[Fraud Alert] Sent successfully')
+    } catch (err) {
+      console.error('[Fraud Analysis Error]', err)
     }
-
-  } catch (err) {
-    console.error('[Fraud Analysis Error]', err)
   }
-}
-
-
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -444,349 +183,155 @@ const triggerFraudAnalysis = async (nhifId, patientId) => {
           <DialogTitle className="text-2xl font-semibold text-gray-800">Add New Patient</DialogTitle>
         </DialogHeader>
 
-        {error && (
-          <Alert variant="destructive" className="mb-6 bg-red-50 border-red-200">
-            {error}
-          </Alert>
-        )}
+        {error && (<Alert variant="destructive" className="mb-6 bg-red-50 border-red-200">{error}</Alert>)}
 
         <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Personal Information */}
-          <div className="border-b pb-4">
-            <h3 className="text-lg font-medium text-gray-700 mb-4">Personal Information</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              <div>
-                <Label htmlFor="nhifId" className="text-sm font-medium text-gray-600">NHIF ID *</Label>
-                <Input
-                  id="nhifId"
-                  name="nhifId"
-                  value={formData.nhifId}
-                  onChange={handleChange}
-                  required
-                  className="mt-1 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-md"
-                />
-              </div>
-              <div>
-                <Label htmlFor="firstName" className="text-sm font-medium text-gray-600">First Name *</Label>
-                <Input
-                  id="firstName"
-                  name="firstName"
-                  value={formData.firstName}
-                  onChange={handleChange}
-                  required
-                  className="mt-1 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-md"
-                />
-              </div>
-              <div>
-                <Label htmlFor="lastName" className="text-sm font-medium text-gray-600">Last Name *</Label>
-                <Input
-                  id="lastName"
-                  name="lastName"
-                  value={formData.lastName}
-                  onChange={handleChange}
-                  required
-                  className="mt-1 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-md"
-                />
-              </div>
-              <div>
-                <Label htmlFor="dateOfBirth" className="text-sm font-medium text-gray-600">Date of Birth *</Label>
-                <Input
-                  id="dateOfBirth"
-                  name="dateOfBirth"
-                  type="date"
-                  value={formData.dateOfBirth}
-                  onChange={handleChange}
-                  required
-                  className="mt-1 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-md"
-                />
-              </div>
-              <div>
-                <Label className="text-sm font-medium text-gray-600">Gender *</Label>
-                <Select
-                  value={formData.gender}
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, gender: value }))}
-                >
-                  <SelectTrigger className="mt-1 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-md">
-                    <SelectValue placeholder="Select gender" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="male">Male</SelectItem>
-                    <SelectItem value="female">Female</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
 
-          {/* Contact Information */}
-          <div className="border-b pb-4">
-            <h3 className="text-lg font-medium text-gray-700 mb-4">Contact Information</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              <div>
-                <Label htmlFor="phone" className="text-sm font-medium text-gray-600">Phone</Label>
-                <Input
-                  id="phone"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  className="mt-1 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-md"
-                />
-              </div>
-              <div>
-                <Label htmlFor="email" className="text-sm font-medium text-gray-600">Email</Label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="mt-1 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-md"
-                />
-              </div>
-              <div>
-                <Label htmlFor="address" className="text-sm font-medium text-gray-600">Address</Label>
-                <Input
-                  id="address"
-                  name="address"
-                  value={formData.address}
-                  onChange={handleChange}
-                  className="mt-1 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-md"
-                />
-              </div>
-            </div>
-          </div>
+  {/* Personal Information */}
+  <div className="border-b pb-4">
+    <h3 className="text-lg font-medium text-gray-700 mb-4">Personal Information</h3>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div>
+        <Label htmlFor="nhifId">NHIF ID *</Label>
+        <Input id="nhifId" name="nhifId" value={formData.nhifId} onChange={handleChange} required />
+      </div>
+      <div>
+        <Label htmlFor="firstName">First Name *</Label>
+        <Input id="firstName" name="firstName" value={formData.firstName} onChange={handleChange} required />
+      </div>
+      <div>
+        <Label htmlFor="lastName">Last Name *</Label>
+        <Input id="lastName" name="lastName" value={formData.lastName} onChange={handleChange} required />
+      </div>
+      <div>
+        <Label htmlFor="dateOfBirth">Date of Birth *</Label>
+        <Input type="date" id="dateOfBirth" name="dateOfBirth" value={formData.dateOfBirth} onChange={handleChange} required />
+      </div>
+      <div>
+        <Label>Gender *</Label>
+        <Select value={formData.gender} onValueChange={(val) => setFormData(prev => ({ ...prev, gender: val }))}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select gender" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="male">Male</SelectItem>
+            <SelectItem value="female">Female</SelectItem>
+            <SelectItem value="other">Other</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <div>
+        <Label htmlFor="phone">Phone</Label>
+        <Input id="phone" name="phone" value={formData.phone} onChange={handleChange} />
+      </div>
+      <div>
+        <Label htmlFor="email">Email</Label>
+        <Input type="email" id="email" name="email" value={formData.email} onChange={handleChange} />
+      </div>
+      <div>
+        <Label htmlFor="address">Address</Label>
+        <Input id="address" name="address" value={formData.address} onChange={handleChange} />
+      </div>
+    </div>
+  </div>
 
-          {/* Emergency Contact */}
-          <div className="border-b pb-4">
-            <h3 className="text-lg font-medium text-gray-700 mb-4">Emergency Contact</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              <div>
-                <Label htmlFor="emergencyContactName" className="text-sm font-medium text-gray-600">Name</Label>
-                <Input
-                  id="emergencyContactName"
-                  name="emergencyContactName"
-                  value={formData.emergencyContactName}
-                  onChange={handleChange}
-                  className="mt-1 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-md"
-                />
-              </div>
-              <div>
-                <Label htmlFor="emergencyContactPhone" className="text-sm font-medium text-gray-600">Phone</Label>
-                <Input
-                  id="emergencyContactPhone"
-                  name="emergencyContactPhone"
-                  value={formData.emergencyContactPhone}
-                  onChange={handleChange}
-                  className="mt-1 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-md"
-                />
-              </div>
-              <div>
-                <Label htmlFor="emergencyContactRelationship" className="text-sm font-medium text-gray-600">Relationship</Label>
-                <Input
-                  id="emergencyContactRelationship"
-                  name="emergencyContactRelationship"
-                  value={formData.emergencyContactRelationship}
-                  onChange={handleChange}
-                  className="mt-1 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-md"
-                />
-              </div>
-            </div>
-          </div>
+  {/* Emergency Contact */}
+  <div className="border-b pb-4">
+    <h3 className="text-lg font-medium text-gray-700 mb-4">Emergency Contact</h3>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div>
+        <Label htmlFor="emergencyContactName">Name</Label>
+        <Input id="emergencyContactName" name="emergencyContactName" value={formData.emergencyContactName} onChange={handleChange} />
+      </div>
+      <div>
+        <Label htmlFor="emergencyContactPhone">Phone</Label>
+        <Input id="emergencyContactPhone" name="emergencyContactPhone" value={formData.emergencyContactPhone} onChange={handleChange} />
+      </div>
+      <div>
+        <Label htmlFor="emergencyContactRelationship">Relationship</Label>
+        <Input id="emergencyContactRelationship" name="emergencyContactRelationship" value={formData.emergencyContactRelationship} onChange={handleChange} />
+      </div>
+    </div>
+  </div>
 
-          {/* Medical Information */}
-          <div className="border-b pb-4">
-            <h3 className="text-lg font-medium text-gray-700 mb-4">Medical Information</h3>
-            <div className="space-y-6">
-              {/* Medical History */}
-              <div>
-                <Label className="text-sm font-medium text-gray-600">Medical History</Label>
-                {formData.medicalHistory.map((item, index) => (
-                  <div key={index} className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4 p-4 bg-gray-50 rounded-md">
-                    <div>
-                      <Label htmlFor={`condition-${index}`} className="text-sm font-medium text-gray-600">Condition</Label>
-                      <Input
-                        id={`condition-${index}`}
-                        value={item.condition}
-                        onChange={(e) => updateMedicalHistory(index, 'condition', e.target.value)}
-                        placeholder="Enter condition"
-                        className="mt-1 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-md"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor={`diagnosisDate-${index}`} className="text-sm font-medium text-gray-600">Diagnosis Date</Label>
-                      <Input
-                        id={`diagnosisDate-${index}`}
-                        type="date"
-                        value={item.diagnosisDate}
-                        onChange={(e) => updateMedicalHistory(index, 'diagnosisDate', e.target.value)}
-                        className="mt-1 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-md"
-                      />
-                    </div>
-                    {formData.medicalHistory.length > 1 && (
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        onClick={() => removeMedicalHistory(index)}
-                        className="mt-6 bg-red-600 hover:bg-red-700 text-white"
-                      >
-                        Remove
-                      </Button>
-                    )}
-                  </div>
-                ))}
-                <Button
-                  type="button"
-                  onClick={addMedicalHistory}
-                  className="mt-2 bg-blue-600 hover:bg-blue-700 text-white"
-                >
-                  Add Condition
-                </Button>
-              </div>
+  {/* Medical History */}
+  <div>
+    <Label>Medical History</Label>
+    {formData.medicalHistory.map((item, idx) => (
+      <div key={idx} className="flex gap-2 mb-2">
+        <Input placeholder="Condition" value={item.condition} onChange={e => updateMedicalHistory(idx, 'condition', e.target.value)} />
+        <Input type="date" value={item.diagnosisDate} onChange={e => updateMedicalHistory(idx, 'diagnosisDate', e.target.value)} />
+        {formData.medicalHistory.length > 1 && (
+          <Button type="button" variant="destructive" onClick={() => removeMedicalHistory(idx)}>Remove</Button>
+        )}
+      </div>
+    ))}
+    <Button type="button" onClick={addMedicalHistory}>Add Condition</Button>
+  </div>
 
-              {/* Allergies */}
-              <div>
-                <Label className="text-sm font-medium text-gray-600">Allergies</Label>
-                {formData.allergies.map((allergy, index) => (
-                  <div key={index} className="flex gap-2 mb-2">
-                    <Input
-                      value={allergy}
-                      onChange={(e) => updateAllergy(index, e.target.value)}
-                      placeholder="Enter allergy"
-                      className="mt-1 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-md"
-                    />
-                    {formData.allergies.length > 1 && (
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        onClick={() => removeAllergy(index)}
-                        className="mt-1 bg-red-600 hover:bg-red-700 text-white"
-                      >
-                        Remove
-                      </Button>
-                    )}
-                  </div>
-                ))}
-                <Button
-                  type="button"
-                  onClick={addAllergy}
-                  className="mt-2 bg-blue-600 hover:bg-blue-700 text-white"
-                >
-                  Add Allergy
-                </Button>
-              </div>
+  {/* Allergies */}
+  <div>
+    <Label>Allergies</Label>
+    {formData.allergies.map((al, idx) => (
+      <div key={idx} className="flex gap-2 mb-2">
+        <Input placeholder="Allergy" value={al} onChange={e => updateAllergy(idx, e.target.value)} />
+        {formData.allergies.length > 1 && (
+          <Button type="button" variant="destructive" onClick={() => removeAllergy(idx)}>Remove</Button>
+        )}
+      </div>
+    ))}
+    <Button type="button" onClick={addAllergy}>Add Allergy</Button>
+  </div>
 
-              {/* Current Medications */}
-              <div>
-                <Label className="text-sm font-medium text-gray-600">Current Medications</Label>
-                {formData.currentMedications.map((med, index) => (
-                  <div key={index} className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4 p-4 bg-gray-50 rounded-md">
-                    <div>
-                      <Label htmlFor={`medName-${index}`} className="text-sm font-medium text-gray-600">Medication Name</Label>
-                      <Input
-                        id={`medName-${index}`}
-                        value={med.name}
-                        onChange={(e) => updateMedication(index, 'name', e.target.value)}
-                        placeholder="Enter medication name"
-                        className="mt-1 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-md"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor={`dosage-${index}`} className="text-sm font-medium text-gray-600">Dosage</Label>
-                      <Input
-                        id={`dosage-${index}`}
-                        value={med.dosage}
-                        onChange={(e) => updateMedication(index, 'dosage', e.target.value)}
-                        placeholder="Enter dosage"
-                        className="mt-1 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-md"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor={`frequency-${index}`} className="text-sm font-medium text-gray-600">Frequency</Label>
-                      <Input
-                        id={`frequency-${index}`}
-                        value={med.frequency}
-                        onChange={(e) => updateMedication(index, 'frequency', e.target.value)}
-                        placeholder="Enter frequency"
-                        className="mt-1 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-md"
-                      />
-                    </div>
-                    {formData.currentMedications.length > 1 && (
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        onClick={() => removeMedication(index)}
-                        className="mt-6 bg-red-600 hover:bg-red-700 text-white"
-                      >
-                        Remove
-                      </Button>
-                    )}
-                  </div>
-                ))}
-                <Button
-                  type="button"
-                  onClick={addMedication}
-                  className="mt-2 bg-blue-600 hover:bg-blue-700 text-white"
-                >
-                  Add Medication
-                </Button>
-              </div>
-            </div>
-          </div>
+  {/* Current Medications */}
+  <div>
+    <Label>Current Medications</Label>
+    {formData.currentMedications.map((med, idx) => (
+      <div key={idx} className="flex gap-2 mb-2">
+        <Input placeholder="Name" value={med.name} onChange={e => updateMedication(idx, 'name', e.target.value)} />
+        <Input placeholder="Dosage" value={med.dosage} onChange={e => updateMedication(idx, 'dosage', e.target.value)} />
+        <Input placeholder="Frequency" value={med.frequency} onChange={e => updateMedication(idx, 'frequency', e.target.value)} />
+        {formData.currentMedications.length > 1 && (
+          <Button type="button" variant="destructive" onClick={() => removeMedication(idx)}>Remove</Button>
+        )}
+      </div>
+    ))}
+    <Button type="button" onClick={addMedication}>Add Medication</Button>
+  </div>
 
-          {/* Insurance Information */}
-          <div>
-            <h3 className="text-lg font-medium text-gray-700 mb-4">Insurance Information</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <div>
-                <Label htmlFor="insuranceProvider" className="text-sm font-medium text-gray-600">Insurance Provider</Label>
-                <Input
-                  id="insuranceProvider"
-                  name="insuranceProvider"
-                  value={formData.insuranceProvider}
-                  onChange={handleChange}
-                  className="mt-1 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-md"
-                />
-              </div>
-              <div>
-                <Label htmlFor="insurancePolicyNumber" className="text-sm font-medium text-gray-600">Policy Number</Label>
-                <Input
-                  id="insurancePolicyNumber"
-                  name="insurancePolicyNumber"
-                  value={formData.insurancePolicyNumber}
-                  onChange={handleChange}
-                  className="mt-1 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-md"
-                />
-              </div>
-            </div>
-          </div>
+  {/* Insurance */}
+  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+    <div>
+      <Label htmlFor="insuranceProvider">Insurance Provider</Label>
+      <Input id="insuranceProvider" name="insuranceProvider" value={formData.insuranceProvider} onChange={handleChange} />
+    </div>
+    <div>
+      <Label htmlFor="insurancePolicyNumber">Policy Number</Label>
+      <Input id="insurancePolicyNumber" name="insurancePolicyNumber" value={formData.insurancePolicyNumber} onChange={handleChange} />
+    </div>
+  </div>
 
-          {/* Actions */}
-          <div className="flex justify-end gap-3 pt-4">
-            <Button
-              type="button"
-              onClick={loadSampleData}
-              className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md"
-            >
-              Load Sample
-            </Button>
-            <Button
-              type="submit"
-              disabled={loading}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md"
-            >
-              {loading ? 'Creating...' : 'Create Patient'}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              className="border-gray-300 text-gray-700 hover:bg-gray-100 font-medium py-2 px-4 rounded-md"
-            >
-              Cancel
-            </Button>
-          </div>
-        </form>
+  {/* Load Sample + Actions */}
+  <div className="flex justify-end gap-3 pt-4">
+    <Select value="" onValueChange={(val) => loadSampleData(Number(val))}>
+      <SelectTrigger className="bg-green-600 hover:bg-green-700 text-white rounded-md py-2 px-4">
+        <SelectValue placeholder="Load Sample Patient" />
+      </SelectTrigger>
+      <SelectContent>
+        {samplePatients.map((p, i) => (
+          <SelectItem key={p.nhifId} value={i.toString()}>{p.firstName} {p.lastName}</SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+    <Button type="submit" disabled={loading} className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md">
+      {loading ? 'Creating...' : 'Create Patient'}
+    </Button>
+    <Button type="button" variant="outline" onClick={onClose} className="border-gray-300 text-gray-700 hover:bg-gray-100 font-medium py-2 px-4 rounded-md">
+      Cancel
+    </Button>
+  </div>
+</form>
+
       </DialogContent>
     </Dialog>
   )

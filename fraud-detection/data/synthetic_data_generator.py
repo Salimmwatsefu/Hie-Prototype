@@ -158,8 +158,12 @@ class HealthcareFraudDataGenerator:
             claim = self._generate_fraud_claim(
                 fraud_type, i, existing_patients, existing_providers, normal_claims_df
             )
+            # Convert Series to dict if necessary
+            if isinstance(claim, pd.Series):
+                claim = claim.to_dict()
             fraud_claims.append(claim)
         
+        self.logger.info(f"Sample fraud_claims: {fraud_claims[:2]}")  # Debug
         return pd.DataFrame(fraud_claims)
     
     def _generate_fraud_claim(self, fraud_type, claim_index, patients, providers, normal_df):
@@ -170,20 +174,20 @@ class HealthcareFraudDataGenerator:
         
         if fraud_type == 'billing_inflation':
             # Inflate billing amounts significantly
-            base_claim = normal_df.sample(1).iloc[0].copy()
+            base_claim = normal_df.sample(1).iloc[0].to_dict()  # Convert to dict
             base_claim['claim_id'] = claim_id
             base_claim['claim_amount'] *= np.random.uniform(2.0, 5.0)  # 2-5x inflation
             base_claim['is_fraud'] = 1
-            
+        
         elif fraud_type == 'duplicate_billing':
             # Create duplicate of existing claim with slight modifications
-            base_claim = normal_df.sample(1).iloc[0].copy()
+            base_claim = normal_df.sample(1).iloc[0].to_dict()  # Convert to dict
             base_claim['claim_id'] = claim_id
             # Same patient, provider, diagnosis, but different date (within 30 days)
             original_date = pd.to_datetime(base_claim['claim_date'])
-            base_claim['claim_date'] = original_date + timedelta(days=np.random.randint(1, 30))
+            base_claim['claim_date'] = (original_date + timedelta(days=np.random.randint(1, 30))).isoformat()
             base_claim['is_fraud'] = 1
-            
+        
         elif fraud_type == 'phantom_billing':
             # Bill for services never provided (unusual patterns)
             patient_id = np.random.choice(patients)
@@ -206,7 +210,7 @@ class HealthcareFraudDataGenerator:
                 'claim_id': claim_id,
                 'patient_id': patient_id,
                 'provider_id': provider_id,
-                'claim_date': claim_date,
+                'claim_date': claim_date.isoformat(),  # Convert to string
                 'diagnosis_code': diagnosis_code,
                 'procedure_code': procedure_code,
                 'claim_amount': round(claim_amount, 2),
@@ -218,10 +222,10 @@ class HealthcareFraudDataGenerator:
                 'nhif_id': f"NHI{np.random.randint(100000, 999999)}",
                 'is_fraud': 1
             }
-            
+        
         elif fraud_type == 'upcoding':
             # Bill for more expensive procedures than actually performed
-            base_claim = normal_df.sample(1).iloc[0].copy()
+            base_claim = normal_df.sample(1).iloc[0].to_dict()  # Convert to dict
             base_claim['claim_id'] = claim_id
             
             # Upgrade to more expensive procedure codes
@@ -238,10 +242,10 @@ class HealthcareFraudDataGenerator:
                 base_claim['claim_amount'] *= np.random.uniform(1.5, 2.5)
             
             base_claim['is_fraud'] = 1
-            
+        
         elif fraud_type == 'unbundling':
             # Split single procedures into multiple billable components
-            base_claim = normal_df.sample(1).iloc[0].copy()
+            base_claim = normal_df.sample(1).iloc[0].to_dict()  # Convert to dict
             base_claim['claim_id'] = claim_id
             
             # Create multiple related procedures on same date
@@ -402,4 +406,3 @@ if __name__ == "__main__":
     
     print("\nSample data:")
     print(dataset.head())
-
